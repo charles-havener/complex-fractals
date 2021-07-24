@@ -1,17 +1,6 @@
 from PIL import Image
 import numpy as np
 
-# smooth coloring
-def color(z, i, R=4):
-    if abs(z) < R:
-        return 0, 0, 0
-    v = np.log2(i + R - np.log2(np.log2(abs(z)))) / 5
-    if v < 1.0:
-        return v**4, v**1, v**1.5 # outer
-    else:
-        v = max(0, 2 - v)
-        return v**2.2, v**1, v**1.5 # inner
-
 # Flow
 #? blue->sepia [0,0,0], [v**4, v**2.5, v**1], [v**1, v**1.5, v**3]
 #? green->purple [0,0,0], [v**2.5, v**1, v**4], [v**1.5, v**3, v**1]
@@ -46,109 +35,130 @@ def color(z, i, R=4):
 #? wine [0.39, 0.08, 0.04], [v**1.5, v**3, v**3], [v**1.1, v**1.4, v**1.4]
 #? midnightblue [0.08, 0.04, 0.39], [v**3, v**3, v**1.5], [v**1.4, v**1.4, v**1.1]
 
-
 #? yellow [.7, .7, .2], [v**1, v**1, v**3], [v**1, v**1, v**1.8]
 #? magenta [0.7, 0.2, 0.7], [v**1, v**3, v**1], [v**1, v**1.8, v**1]
 #? teal [0.2, 0.7, 0.7], [v**3, v**1, v**1], [v**1.8, v**1, v**1]
 
-def burningShip(R=4):
-    z = np.zeros((dimen_y, dimen_x), dtype=np.complex)
-    X = np.linspace(-3.0, 2.33, dimen_x).reshape((1, dimen_x))
-    Y = np.linspace(-2.0,1.0,dimen_y).reshape((dimen_y, 1))
-    c = X+1j*Y
+class Fractal():
+    def __init__(self, min_x, max_x, min_y, max_y, color_map=None, R=4):
+        self.dimen_x, self.dimen_y = 960, 540
+        self.iterations = 255
+        self.R = R
+        self.color_map = color_map
+        
+        self.X = self.__setX(min_x, max_x, self.dimen_x)
+        self.Y = self.__setY(min_y, max_y, self.dimen_y)
 
-    img_data = np.zeros((dimen_y, dimen_x), dtype=np.float32)
-    is_not_diverged = np.ones((dimen_y, dimen_x), dtype=np.float32)
+        self.img_data = np.zeros((self.dimen_y, self.dimen_x), dtype=np.float32)
+        self.is_not_diverged = np.ones((self.dimen_y, self.dimen_x), dtype=np.float32)
 
-    print(f"  -iterating points")
-    for _ in range(iterations):
-        z = np.where(is_not_diverged, (abs(z.real)+abs(z.imag)*1j)**2 + c, z)
-        is_not_diverged = (np.abs(z)<4).astype(np.float32) # 0->diverged; 1->not
-        # increment iteration of non diverged points
-        img_data += is_not_diverged
+        print(f"  -iterating points")
 
-    # get pixel colors
-    print(f"  -generating colors")
-    r,g,b = np.frompyfunc(color, 3, 3)(z, img_data, R)
-    img_c = np.dstack((r,g,b))
+        '''
+        TODO: R not an argument, defaults to 4 w/ method to set R
+        TODO: pass in width and height as args or pass in an image object with width and height?
+        TODO: add dictionary of color maps {cmap_name: [a,b,c,d,e,f,g,h,i]}
+            - idx are in order for numbers as the appear
+        '''
 
-    print(f"  -writing image")
-    return np.uint8(img_c * 255)
+    def set_dimensions(self, x, y):
+        self.dimen_x = x
+        self.dimen_y = y
+
+    def set_iterations(self, iterations):
+        self.iterations = iterations
+
+    def __setX(self, a, b, dimen):
+        return np.linspace(a, b, dimen).reshape((1, dimen))
+    
+    def __setY(self, a, b, dimen):
+        return np.linspace(a, b, dimen).reshape((dimen, 1))
+    
+    @staticmethod
+    def color(z, i, R):
+        if abs(z) < R:
+            return 0, 0, 0
+        v = np.log2(i + R - np.log2(np.log2(abs(z)))) / 5
+        if v < 1.0:
+            return v**1, v**4, v**2.5 # outer
+        else:
+            v = max(0, 2 - v)
+            return v**3, v**1, v**1.5 # inner
+
+    def _get_colors(self):
+        print("  -assigning colors")
+        r, g, b = np.frompyfunc(self.color, 3, 3)(self.z, self.img_data, self.R)
+        img_c = np.dstack((r,g,b))
+        return np.uint8(img_c * 255)
+
+    def _update_img_data(self):
+        self.is_not_diverged = (np.abs(self.z)<self.R).astype(np.float32) #0->diverged, 1->not
+        self.img_data += self.is_not_diverged
+
+    def _create_image(self, color_array, filename):
+        print("  -creating images")
+        display = Image.fromarray(color_array, 'RGB')
+        display.save(filename)
 
 
-def mandelbrot(R=4):
-    z = np.zeros((dimen_y, dimen_x), dtype=np.complex)
-    X = np.linspace(-3.33, 2.0, dimen_x).reshape((1, dimen_x))
-    Y = np.linspace(-1.5,1.5,dimen_y).reshape((dimen_y, 1))
-    c = X+1j*Y
+class BurningShip(Fractal):
+    def __init__(self, color_map=None, R=4):
+        print("Burning Ship")
+        super().__init__(-3.0, 2.33, -2.0, 1.0, color_map, R)
+        self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
+        self.c = self.X+1j*self.Y
+        self.run()
 
-    img_data = np.zeros((dimen_y, dimen_x), dtype=np.float32)
-    is_not_diverged = np.ones((dimen_y, dimen_x), dtype=np.float32)
+    def run(self):
+        self._create_image(self.__gen_points(), "burning.bmp")
 
-    print(f"  -iterating points")
-    for _ in range(iterations):
-        z = np.where(is_not_diverged, z**2 + c, z)
-        is_not_diverged = (np.abs(z)<4).astype(np.float32) # 0->diverged; 1->not
-        # increment iteration of non diverged points
-        img_data += is_not_diverged
-
-    # get pixel colors
-    print(f"  -generating colors")
-    r,g,b = np.frompyfunc(color, 3, 3)(z, img_data, R)
-    img_c = np.dstack((r,g,b))
-
-    print(f"  -writing image")
-    return np.uint8(img_c * 255)
+    def __gen_points(self):
+        for _ in range(self.iterations):
+            # z_(n+1) = (|Re(z_n)| + i|Im(z_n)|)^2 + c
+            self.z = np.where(self.is_not_diverged, (abs(self.z.real)+abs(self.z.imag)*1j)**2 + self.c, self.z)
+            self._update_img_data()
+        return self._get_colors()
 
 
-def julia(c, R=4):
-    c = np.full((dimen_y, dimen_x), c,dtype=np.complex)
-    X = np.linspace(-2.67, 2.67, dimen_x).reshape((1, dimen_x))
-    Y = np.linspace(-1.5,1.5,dimen_y).reshape((dimen_y, 1))
-    z = X+1j*Y
+class Mandelbrot(Fractal):
+    def __init__(self, color_map=None, R=4):
+        print("Mandelbrot")
+        super().__init__(-3.33, 2.0, -1.5, 1.5, color_map, R)
+        self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
+        self.c = self.X+1j*self.Y
+        self.run()
 
-    img_data = np.zeros((dimen_y, dimen_x), dtype=np.float32)
-    is_not_diverged = np.ones((dimen_y, dimen_x), dtype=np.float32)
+    def run(self):
+        self._create_image(self.__gen_points(), "mandelbrot.bmp")
 
-    print(f"  -iterating points")
-    for _ in range(iterations):
-        z = np.where(is_not_diverged, z**2 + c, z)
-        is_not_diverged = (np.abs(z)<4).astype(np.float32) # 0->diverged; 1->not
-        # increment iteration of non diverged points
-        img_data += is_not_diverged
+    def __gen_points(self):
+        for _ in range(self.iterations):
+            # z_(n+1) = (z_n)^2 + c
+            self.z = z = np.where(self.is_not_diverged, self.z**2 + self.c, self.z)
+            self._update_img_data()
+        return self._get_colors()
 
-    # get pixel colors
-    print(f"  -generating colors")
-    r,g,b = np.frompyfunc(color, 3, 3)(z, img_data, R)
-    img_c = np.dstack((r,g,b))
 
-    print(f"  -writing image")
-    return np.uint8(img_c * 255)
+class Julia(Fractal):
+    def __init__(self, real, img, color_map=None, R=4):
+        print("Julia Set")
+        c = real+1j*img
+        super().__init__(-2.67, 2.67, -1.5, 1.5, color_map, R)
+        self.z = self.X+1j*self.Y
+        self.c = np.full((self.dimen_y, self.dimen_x), c, dtype=np.complex128)
+        self.run()
 
+    def run(self):
+        self._create_image(self.__gen_points(), "julia.bmp")
+
+    def __gen_points(self):
+        for _ in range(self.iterations):
+            # z_(n+1) = (z_n)^2 + c
+            self.z = z = np.where(self.is_not_diverged, self.z**2 + self.c, self.z)
+            self._update_img_data()
+        return self._get_colors()
 
 if __name__ == "__main__":
-    dimen_x, dimen_y = 960, 540
-    iterations = 255
-    R = 4
-
-    display = Image.fromarray(mandelbrot(), 'RGB')
-    display.save('mandelbrot.bmp')
-
-    display = Image.fromarray(burningShip(), 'RGB')
-    display.save('burning.bmp')
-
-    c = -0.7269+0.1889j
-    display = Image.fromarray(julia(c), 'RGB')
-    display.save('julia1.bmp')
-
-    c = -0.835-0.2321j
-    display = Image.fromarray(julia(c), 'RGB')
-    display.save('julia2.bmp')
-
-    c = 0.285+0.01j
-    display = Image.fromarray(julia(c), 'RGB')
-    display.save('julia3.bmp')
-
-    c = -0.8+0.156j
-    display = Image.fromarray(julia(c), 'RGB')
-    display.save('julia4.bmp')
+    #BurningShip()
+    #Mandelbrot()
+    Julia(0.285, 0.01)
