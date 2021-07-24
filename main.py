@@ -1,165 +1,100 @@
-from decimal import Decimal, getcontext
+from PIL import Image
+import numpy as np
 
-class Memoize:
-    def __init__(self, fn):
-        self.fn = fn
-        self.memo = {}
-    def __call__(self, *args):
-        if args not in self.memo:
-            self.memo[args] = self.fn(*args)
-        return self.memo[args]
+# smooth coloring
+def color(z, i, R=4):
+    if abs(z) < R:
+        return 0, 0, 0
+    v = np.log2(i + R - np.log2(np.log2(abs(z)))) / 5
+    if v < 1.0:
+        return v**4, v**2.5, v
+    else:
+        v = max(0, 2 - v)
+        return v, v**1.5, v**3
 
-class Dec:
-    def __init__(self, val):
-        if type(val)!=str:
-            val = str(val)
-        self.val = Decimal(val)
+def burningShip(R=4):
+    z = np.zeros((dimen_y, dimen_x), dtype=np.complex)
+    X = np.linspace(-2.67, 2.67, dimen_x).reshape((1, dimen_x))
+    Y = np.linspace(-1.5,1.5,dimen_y).reshape((dimen_y, 1))
+    c = X+1j*Y
 
-class ComplexNumber:
-    def __init__(self, real, img):
-        self.real = Dec(real).val
-        self.img = Dec(img).val
-    
-    def __repr__(self):
-        if self.img >= 0:
-            return f"{self.real}+{self.img}i"
-        return f"{self.real}{self.img}i"
+    img_data = np.zeros((dimen_y, dimen_x), dtype=np.float32)
+    is_not_diverged = np.ones((dimen_y, dimen_x), dtype=np.float32)
 
-    def __add__(self, o):
-        return ComplexNumber(self.real + o.real, self.img + o.img)
+    print(f"  -iterating points")
+    for _ in range(iterations):
+        z = np.where(is_not_diverged, (abs(z.real)+abs(z.imag)*1j)**2 + c, z)
+        is_not_diverged = (np.abs(z)<4).astype(np.float32) # 0->diverged; 1->not
+        # increment iteration of non diverged points
+        img_data += is_not_diverged
 
-    def __sub__(self, o):
-        return ComplexNumber(self.real - o.real, self.img - o.img)
+    # get pixel colors
+    print(f"  -generating colors")
+    r,g,b = np.frompyfunc(color, 3, 3)(z, img_data, R)
+    img_c = np.dstack((r,g,b))
 
-    def __truediv__(self, o):
-        o = Dec(o).val
-        return ComplexNumber(self.real/o, self.img/o)
-
-    def __mul__(self, o):
-        real = self.real*o.real - self.img*o.img
-        img = self.real*o.img + self.img*o.real
-        return ComplexNumber(real, img)
+    print(f"  -writing image")
+    return np.uint8(img_c * 255)
 
 
-class ComplexImg:
-    def __init__(self, width=1980, height=1080, debug=False):
-        self.debug = debug
+def mandelbrot(R=4):
+    z = np.zeros((dimen_y, dimen_x), dtype=np.complex)
+    X = np.linspace(-2.67, 2.67, dimen_x).reshape((1, dimen_x))
+    Y = np.linspace(-1.5,1.5,dimen_y).reshape((dimen_y, 1))
+    c = X+1j*Y
 
-        # Initializes evenly around 0+0i
-        self.width = width
-        self.height = height
-        self.__setInitialCorners(self.width, self.height)
+    img_data = np.zeros((dimen_y, dimen_x), dtype=np.float32)
+    is_not_diverged = np.ones((dimen_y, dimen_x), dtype=np.float32)
 
-        self.zoom_rate = Dec('1.001').val
-        self.destination = ComplexNumber(-1,2) #! need real value at some point
+    print(f"  -iterating points")
+    for _ in range(iterations):
+        z = np.where(is_not_diverged, z**2 + c, z)
+        is_not_diverged = (np.abs(z)<4).astype(np.float32) # 0->diverged; 1->not
+        # increment iteration of non diverged points
+        img_data += is_not_diverged
 
-        if self.debug:
-            print(f"\nDEBUG MODE: ENABLED\n")
-            print(f"Width: {self.width}")
-            print(f"Height: {self.height}")
-            print(f"Zoom Rate: {self.zoom_rate}")
-            print(f"Destination: {self.destination}")
-            print(f"Initial Corners:\n\tTop Left: {self.top_left}\n\tTop Right: {self.top_right}\n\tBottom Left: {self.bottom_left}\n\tBottom Right: {self.bottom_right}\n")
+    # get pixel colors
+    print(f"  -generating colors")
+    r,g,b = np.frompyfunc(color, 3, 3)(z, img_data, R)
+    img_c = np.dstack((r,g,b))
 
-    # TODO: get starting real/img range for set
-    def __setInitialCorners(self, width, height):
-        self.top_left = ComplexNumber(-Decimal(height/2), Decimal(width/2))
-        self.top_right = ComplexNumber(Decimal(height/2), Decimal(width/2))
-        self.bottom_left = ComplexNumber(-Decimal(height/2), -Decimal(width/2))
-        self.bottom_right = ComplexNumber(Decimal(height/2), -Decimal(width/2))
+    print(f"  -writing image")
+    return np.uint8(img_c * 255)
 
-    def setWidth(self, width):
-        self.width = width
-        if self.debug:
-            print(f"Updated width: {self.width}\n")
 
-    def setHeight(self, height):
-        self.height = height
-        if self.debug:
-            print(f"Updated height: {self.height}\n")
+def julia(c, R=4):
+    c = np.full((dimen_y, dimen_x), c,dtype=np.complex)
+    X = np.linspace(-2.67, 2.67, dimen_x).reshape((1, dimen_x))
+    Y = np.linspace(-1.5,1.5,dimen_y).reshape((dimen_y, 1))
+    z = X+1j*Y
 
-    def setDims(self, width, height):
-        self.setWidth(width)
-        self.setHeight(height)
+    img_data = np.zeros((dimen_y, dimen_x), dtype=np.float32)
+    is_not_diverged = np.ones((dimen_y, dimen_x), dtype=np.float32)
 
-    def setZoomRate(self, z):
-        self.zoom_rate = Dec(z).val
-        if self.debug:
-            print(f"Updated zoom rate: {self.zoom_rate}\n")
+    print(f"  -iterating points")
+    for _ in range(iterations):
+        z = np.where(is_not_diverged, z**2 + c, z)
+        is_not_diverged = (np.abs(z)<4).astype(np.float32) # 0->diverged; 1->not
+        # increment iteration of non diverged points
+        img_data += is_not_diverged
 
-    def setDestination(self, r, i):
-        self.destination = ComplexNumber(r, i)
-        if self.debug:
-            print(f"Updated destination: {self.destination}\n")
+    # get pixel colors
+    print(f"  -generating colors")
+    r,g,b = np.frompyfunc(color, 3, 3)(z, img_data, R)
+    img_c = np.dstack((r,g,b))
 
-    def run(self, iterations=1):
-        total = iterations
-        while iterations>0:
-            if self.debug:
-                print(f"Running iteration {total-iterations+1} of {total}: {((total-iterations)/total)*100:.2f}%")
+    print(f"  -writing image")
+    return np.uint8(img_c * 255)
 
-            vals = self.__generateValues() # TODO: actual formula in function instead of temp
-            print(vals)
-            #TODO: histogram equalization of values?? or just assign colors based on vals [0, max)
-            #TODO: create image
-            self.__setNextIterationCorners()
-            iterations-=1
-            print("\n")
-
-    def __setNextIterationCorners(self):
-        # Sets edge corners of next iteration. Attempts to center on destination, but will not go beyond 
-        # original bounds allowing for a smooth zoom transition towards  destination points nearer to edges
-        next_real_range = (self.top_right.real - self.top_left.real)/self.zoom_rate
-        next_img_range = (self.top_right.img - self.bottom_right.img)/self.zoom_rate
-
-        # Update coords of top right and set the others based on those values
-        self.top_right.real = min(self.top_right.real, self.destination.real+(next_real_range/2))
-        self.top_right.img = min(self.top_right.img, self.destination.img+(next_img_range/2))
-
-        self.top_left = ComplexNumber(self.top_right.real-next_real_range, self.top_right.img)
-        self.bottom_right = ComplexNumber(self.top_right.real, self.top_right.img-next_img_range)
-        self.bottom_left = ComplexNumber(self.top_right.real - next_real_range, self.top_right.img - next_img_range)
-
-        if self.debug:
-            print("Next edge corners:")
-            print(f"\t{self.top_left}  {self.top_right}")
-            print(f"\t{self.bottom_left}  {self.bottom_right}")
-
-    def __generateValues(self):
-        real_step_size = (self.top_right.real-self.top_left.real)/self.width
-        img_step_size = (self.top_right.img-self.bottom_right.img)/self.height
-        reals = [self.top_left.real+(real_step_size*w)+real_step_size/2 for w in range(self.width)]
-        imgs = [self.bottom_right.img+(img_step_size*h)+img_step_size/2 for h in range(self.height)]
-
-        vals = [[-1]*self.height for _ in range(self.width)]
-        for r in range(len(reals)):
-            for i in range(len(imgs)):
-                vals[r][i] = self.__mandelbrot(ComplexNumber(reals[r], imgs[i]))
-        return vals
-
-    def __mandelbrot(self, c):
-        iteration = 0
-        z = ComplexNumber(0,0)
-        while iteration < max_iterations:
-            if z.real*z.real + z.img*z.img > 4:
-                return iteration/max_iterations
-            z = z*z+c
-            iteration+=1
-        return 1
-
-def setPrecision(precision):
-    getcontext().prec = precision
-
-def main():
-    setPrecision(precision)
-    img = ComplexImg(6,6,debug=True)
-    img.setZoomRate(2)
-    img.setDestination(0,0)
-    img.setDims(10,10)
-    img.run(1)
 
 if __name__ == "__main__":
-    precision = 100
-    max_iterations = 200
-    l = timeit(main, number=1)
-    print("runtime:", l, "seconds")
+    dimen_x, dimen_y = 960, 540
+    iterations = 255
+
+    c = -0.7269+0.1889j
+    R = 4
+
+    #display = Image.fromarray(mandelbrot(), 'RGB')
+    #display = Image.fromarray(julia(c), 'RGB')
+    display = Image.fromarray(burningShip(), 'RGB')
+    display.save('out.bmp')
