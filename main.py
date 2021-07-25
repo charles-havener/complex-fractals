@@ -3,13 +3,14 @@ import numpy as np
 
 #TODO: inspect all images and to adjust for centered
 #TODO: celtic 90deg rotation?
+#TODO: filename as optional arg in subclasses, defaults to className.bmp
 
 
 class Fractal():
-    def __init__(self, min_x, max_x, min_y, max_y, color_map=None, R=4):
+    def __init__(self, min_x, max_x, min_y, max_y, filename, color_map=None, R=4):
         # 2560,1440; 1920,1080; 960,540; 480,270 
-        self.dimen_x, self.dimen_y = 960, 540
-        self.iterations = 510
+        self.dimen_x, self.dimen_y = 480,270
+        self.iterations = 127
         self.R = R
 
         self.X = self.__setX(min_x, max_x, self.dimen_x)
@@ -18,6 +19,7 @@ class Fractal():
         self.img_data = np.zeros((self.dimen_y, self.dimen_x), dtype=np.float32)
         self.is_not_diverged = np.ones((self.dimen_y, self.dimen_x), dtype=np.float32)
 
+        self.filename = filename
         self.__set_color_maps()
         self.cm = self.color_maps["pink-teal"] if color_map is None else self.color_maps[color_map]
         #print(f"  -iterating points")
@@ -101,15 +103,15 @@ class Fractal():
 
 
 class Mandelbrot(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="mandelbrot.bmp", color_map=None, R=4):
         #print("Mandelbrot")
-        super().__init__(-3.33, 2.0, -1.5, 1.5, color_map, R)
+        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "mandelbrot.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -121,15 +123,15 @@ class Mandelbrot(Fractal):
 
 
 class Mandelbar(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="mandelbar.bmp", color_map=None, R=4):
         #print("Mandelbar")
-        super().__init__(-1.78, 1.78, -1, 1, color_map, R)
+        super().__init__(-1.78, 1.78, -1, 1, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "mandelbar.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -141,15 +143,15 @@ class Mandelbar(Fractal):
 
 
 class PerpendicularMandelbrot(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="perpendicularMandelbrot.bmp", color_map=None, R=4):
         #print("Perpendicular Mandelbrot")
-        super().__init__(-3.0, 2.33, -1.5, 1.5, color_map, R)
+        super().__init__(-3.0, 2.33, -1.5, 1.5, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "perpendicularMandelbrot.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -161,15 +163,15 @@ class PerpendicularMandelbrot(Fractal):
 
 
 class Celtic(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="celtic.bmp", color_map=None, R=4):
         #print("Celtic")
-        super().__init__(-4.12, 3.0, -2, 2, color_map, R)
+        super().__init__(-4.12, 3.0, -2, 2, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "celtic.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -181,15 +183,15 @@ class Celtic(Fractal):
 
 
 class CelticMandelbar(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="celticMandelbar.bmp", color_map=None, R=4):
         #print("Celtic Mandelbar")
-        super().__init__(-3.33, 2.0, -1.5, 1.5, color_map, R)
+        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "celticMandelbar.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -201,15 +203,15 @@ class CelticMandelbar(Fractal):
 
 
 class PerpendicularCeltic(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="perpendicularCeltic.bmp", color_map=None, R=4):
         #print("Perpendicular Celtic)
-        super().__init__(-3.33, 2.0, -1.5, 1.5, color_map, R)
+        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "perpendicularCeltic.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -221,15 +223,15 @@ class PerpendicularCeltic(Fractal):
 
 
 class BurningShip(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="burningShip.bmp", color_map=None, R=4):
         #print("Burning Ship")
-        super().__init__(-3.0, 2.33, -2.0, 1.0, color_map, R)
+        super().__init__(-3.0, 2.33, -2.0, 1.0, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "burningShip.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -241,15 +243,15 @@ class BurningShip(Fractal):
 
 
 class HeartMandelbrot(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="heartMandelbrot.bmp", color_map=None, R=4):
         #print("Heart Mandelbrot)
-        super().__init__(-2.22, 1.33, -1, 1, color_map, R)
+        super().__init__(-2.22, 1.33, -1, 1, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "heartMandelbrot.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -261,15 +263,15 @@ class HeartMandelbrot(Fractal):
 
 
 class PerpendicularBurningShip(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="perpendicularBurningShip.bmp", color_map=None, R=4):
         #print("Perpendicular Burning Ship")
-        super().__init__(-3.0, 2.33, -1.5, 1.5, color_map, R)
+        super().__init__(-3.0, 2.33, -1.5, 1.5, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "perpendicularBurningShip.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -281,15 +283,15 @@ class PerpendicularBurningShip(Fractal):
 
 
 class Buffalo(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="buffalo.bmp", color_map=None, R=4):
         #print("Buffalo")
-        super().__init__(-3.33, 2.0, -2.0, 1.0, color_map, R)
+        super().__init__(-3.33, 2.0, -2.0, 1.0, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "buffalo.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -301,15 +303,15 @@ class Buffalo(Fractal):
 
 
 class CelticHeart(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="celticHeart.bmp", color_map=None, R=4):
         #print("Celtic Heart)
-        super().__init__(-2.22, 1.33, -1.0, 1.0, color_map, R)
+        super().__init__(-2.22, 1.33, -1.0, 1.0, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "celticHeart.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -321,15 +323,15 @@ class CelticHeart(Fractal):
 
 
 class PerpendicularBuffalo(Fractal):
-    def __init__(self, color_map=None, R=4):
+    def __init__(self, filename="perpendicularBuffalo.bmp", color_map=None, R=4):
         #print("Perpendicular Buffalo")
-        super().__init__(-3.33, 2.0, -1.5, 1.5, color_map, R)
+        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, R)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "perpendicularBuffalo.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -340,20 +342,17 @@ class PerpendicularBuffalo(Fractal):
         return self._get_colors()
 
 
-
-
-
 class Julia(Fractal):
-    def __init__(self, real, img, color_map=None, R=4):
+    def __init__(self, real, img, filename="julia.bmp", color_map=None, R=4):
         #print("Julia Set")
         c = real+1j*img
-        super().__init__(-2.67, 2.67, -1.5, 1.5, color_map, R)
+        super().__init__(-2.67, 2.67, -1.5, 1.5, filename, color_map, R)
         self.z = self.X+1j*self.Y
         self.c = np.full((self.dimen_y, self.dimen_x), c, dtype=np.complex128)
         self.run()
 
     def run(self):
-        self._create_image(self.__gen_points(), "julia.bmp")
+        self._create_image(self.__gen_points(), self.filename)
 
     def __gen_points(self):
         for _ in range(self.iterations):
@@ -363,60 +362,26 @@ class Julia(Fractal):
         return self._get_colors()
 
 
-
-
-
-# ------------------------------ Misc
-
-
-#TODO: fix denominator 0 in some cases
-class Nova(Fractal):
-    def __init__(self, color_map=None, R=4):
-        #print("Nova")
-        super().__init__(-3.33, 5.55, -2.5, 2.5, color_map, R)
-        self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
-        self.c = self.X+1j*self.Y
-        self.run()
-
-    def run(self):
-        self._create_image(self.__gen_points(), "nova.bmp")
-
-    def __gen_points(self):
-        for _ in range(self.iterations):
-            # z_(n+1) = ...
-            self.z = z = np.where(self.is_not_diverged, self.z - ((self.z - 1)**3)/(3*self.z**2) + self.c, self.z)
-            self._update_img_data()
-        return self._get_colors()
-
-
-class Magnet(Fractal):
-    def __init__(self, color_map=None, R=4):
-        #print("Magnet")
-        super().__init__(-3.33, 5.55, -2.5, 2.5, color_map, R)
-        self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
-        self.c = self.X+1j*self.Y
-        self.run()
-
-    def run(self):
-        self._create_image(self.__gen_points(), "magnet.bmp")
-
-    def __gen_points(self):
-        for _ in range(self.iterations):
-            # z_(n+1) = ...
-            self.z = z = np.where(self.is_not_diverged, ((self.z**2+self.c-1)/(2*self.z+self.c-2))**2, self.z)
-            self._update_img_data()
-        return self._get_colors()
-
-
 if __name__ == "__main__":
 
-    '''
-    cm = ["blue-sepia","green-purple","pink-teal","orange-blue","indigo-green","green-purple","black-white","white-black","purple","orange","cyan","blue","lime","pink","seablue","green","watermelon","red","indigo","shamrock", "barbour","wine","midnightblue","yellow","magenta","teal"]
+    #cm = ["blue-sepia","green-purple","pink-teal","orange-blue","indigo-green","green-purple","black-white","white-black","purple","orange","cyan","blue","lime","pink","seablue","green","watermelon","red","indigo","shamrock", "barbour","wine","midnightblue","yellow","magenta","teal"]
 
-    for c in cm:
-        print(c)
-        Mandelbrot(c)
-        BurningShip(c)
-        Julia(0.285, 0.01, c)
-    '''
-    Celtic("black-white")
+    #for c in cm:
+    c = "blue-sepia"
+    print(c)
+    Mandelbrot(color_map=c)
+    Mandelbar(color_map=c)
+    PerpendicularMandelbrot(color_map=c)
+    Celtic(color_map=c)
+    CelticMandelbar(color_map=c)
+    PerpendicularCeltic(color_map=c)
+    BurningShip(color_map=c)
+    HeartMandelbrot(color_map=c)
+    PerpendicularBurningShip(color_map=c)
+    Buffalo(color_map=c)
+    CelticHeart(color_map=c)
+    PerpendicularBuffalo(color_map=c)
+    Julia(-0.835, -0.232, "julia1.bmp", c)
+    Julia(-0.4, 0.6, "julia2.bmp", c)
+    Julia(-0.8, 0.156, "julia3.bmp", c)
+    Julia(-0.7269, 0.1889, "julia4.bmp", c)
