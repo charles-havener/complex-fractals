@@ -2,8 +2,7 @@ from PIL import Image
 import numpy as np
 
 #TODO: inspect all images and to adjust for centered
-#TODO: celtic 90deg rotation?
-#TODO: filename as optional arg in subclasses, defaults to className.bmp
+#TODO: celtic and |-celtic 90deg rotation?
 
 
 class Fractal():
@@ -364,24 +363,23 @@ class Julia(Fractal):
 
 if __name__ == "__main__":
 
-    #cm = ["blue-sepia","green-purple","pink-teal","orange-blue","indigo-green","green-purple","black-white","white-black","purple","orange","cyan","blue","lime","pink","seablue","green","watermelon","red","indigo","shamrock", "barbour","wine","midnightblue","yellow","magenta","teal"]
+    cm = ["blue-sepia","green-purple","pink-teal","orange-blue","indigo-green","green-purple","black-white","white-black","purple","orange","cyan","blue","lime","pink","seablue","green","watermelon","red","indigo","shamrock", "barbour","wine","midnightblue","yellow","magenta","teal"]
 
-    #for c in cm:
-    c = "blue-sepia"
-    print(c)
-    Mandelbrot(color_map=c)
-    Mandelbar(color_map=c)
-    PerpendicularMandelbrot(color_map=c)
-    Celtic(color_map=c)
-    CelticMandelbar(color_map=c)
-    PerpendicularCeltic(color_map=c)
-    BurningShip(color_map=c)
-    HeartMandelbrot(color_map=c)
-    PerpendicularBurningShip(color_map=c)
-    Buffalo(color_map=c)
-    CelticHeart(color_map=c)
-    PerpendicularBuffalo(color_map=c)
-    Julia(-0.835, -0.232, "julia1.bmp", c)
-    Julia(-0.4, 0.6, "julia2.bmp", c)
-    Julia(-0.8, 0.156, "julia3.bmp", c)
-    Julia(-0.7269, 0.1889, "julia4.bmp", c)
+    for c in cm:
+        print(c)
+        Mandelbrot(color_map=c)
+        Mandelbar(color_map=c)
+        PerpendicularMandelbrot(color_map=c)
+        Celtic(color_map=c)
+        CelticMandelbar(color_map=c)
+        PerpendicularCeltic(color_map=c)
+        BurningShip(color_map=c)
+        HeartMandelbrot(color_map=c)
+        PerpendicularBurningShip(color_map=c)
+        Buffalo(color_map=c)
+        CelticHeart(color_map=c)
+        PerpendicularBuffalo(color_map=c)
+        Julia(-0.835, -0.232, "julia1.bmp", c)
+        Julia(-0.4, 0.6, "julia2.bmp", c)
+        Julia(-0.8, 0.156, "julia3.bmp", c)
+        Julia(-0.7269, 0.1889, "julia4.bmp", c)
