@@ -2,3 +2,6 @@
 /venv
 /.vscode
 /__pycache__
+
+# image files only in main directory
+/*.bmp
