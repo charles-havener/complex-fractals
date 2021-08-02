@@ -67,11 +67,9 @@ class Fractal():
             "blue-sepia":   [0.00, 0.00, 0.00, 4.00, 2.50, 1.00, 1.00, 1.50, 3.00],
             "green-purple": [0.00, 0.00, 0.00, 2.50, 1.00, 4.00, 1.50, 3.00, 1.00],
             "pink-teal":    [0.00, 0.00, 0.00, 1.00, 4.00, 2.50, 3.00, 1.00, 1.50],
-
             "orange-blue":  [0.00, 0.00, 0.00, 1.00, 2.50, 4.00, 3.00, 1.50, 1.00],
             "indigo-green": [0.00, 0.00, 0.00, 2.50, 4.00, 1.00, 1.50, 1.00, 3.00],
-            "green-purple": [0.00, 0.00, 0.00, 4.00, 1.00, 2.50, 1.00, 3.00, 1.50],
-            
+
             "black-white":  [0.00, 0.00, 0.00, 10.0, 10.0, 10.0, 1.00, 1.00, 1.00],
             "white-black":  [0.00, 0.00, 0.00, 1.00, 1.00, 1.00, 2.00, 2.00, 2.00],
             
@@ -363,23 +361,23 @@ class Julia(Fractal):
 
 if __name__ == "__main__":
 
-    cm = ["blue-sepia","green-purple","pink-teal","orange-blue","indigo-green","green-purple","black-white","white-black","purple","orange","cyan","blue","lime","pink","seablue","green","watermelon","red","indigo","shamrock", "barbour","wine","midnightblue","yellow","magenta","teal"]
+    cm = ["blue-sepia","green-purple","pink-teal","orange-blue","indigo-green","black-white","white-black","purple","orange","cyan","blue","lime","pink","seablue","green","watermelon","red","indigo","shamrock", "barbour","wine","midnightblue","yellow","magenta","teal"]
 
-    for c in cm:
-        print(c)
-        Mandelbrot(color_map=c)
-        Mandelbar(color_map=c)
-        PerpendicularMandelbrot(color_map=c)
-        Celtic(color_map=c)
-        CelticMandelbar(color_map=c)
-        PerpendicularCeltic(color_map=c)
-        BurningShip(color_map=c)
-        HeartMandelbrot(color_map=c)
-        PerpendicularBurningShip(color_map=c)
-        Buffalo(color_map=c)
-        CelticHeart(color_map=c)
-        PerpendicularBuffalo(color_map=c)
-        Julia(-0.835, -0.232, "julia1.bmp", c)
-        Julia(-0.4, 0.6, "julia2.bmp", c)
-        Julia(-0.8, 0.156, "julia3.bmp", c)
-        Julia(-0.7269, 0.1889, "julia4.bmp", c)
+    #for c in cm:
+        #print(c)
+    Mandelbrot(color_map=cm[1])
+    Mandelbar(color_map=cm[2])
+    PerpendicularMandelbrot(color_map=cm[3])
+    Celtic(color_map=cm[4])
+    CelticMandelbar(color_map=cm[5])
+    PerpendicularCeltic(color_map=cm[6])
+    BurningShip(color_map=cm[7])
+    HeartMandelbrot(color_map=cm[8])
+    PerpendicularBurningShip(color_map=cm[9])
+    Buffalo(color_map=cm[10])
+    CelticHeart(color_map=cm[11])
+    PerpendicularBuffalo(color_map=cm[12])
+    Julia(-0.835, -0.232, "julia1.bmp", cm[13])
+    Julia(-0.4, 0.6, "julia2.bmp", cm[14])
+    Julia(-0.8, 0.156, "julia3.bmp", cm[15])
+    Julia(-0.7269, 0.1889, "julia4.bmp", cm[21])
