@@ -37,6 +37,7 @@
 - Add zooming options to create zoom animations (will require use of Decimal for high precision with deeper zooms)
 - Multithreading (to speed up point divergence calculations)
 - GUI or Flask site to replace editing main.py to create images
+- Create SVG images for LaTeX formulas since github doesn't render them
 
 <br>
 
