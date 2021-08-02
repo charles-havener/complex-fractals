@@ -5,3 +5,6 @@
 
 # image files only in main directory
 /*.bmp
+
+#gimp files
+*.xcf
