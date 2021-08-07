@@ -1,18 +1,18 @@
 from PIL import Image
+from numba import njit
+from numba import cuda
 import numpy as np
 import sys, inspect
 
-#TODO: inspect all images and to adjust for centered
-#TODO: celtic and |-celtic 90deg rotation?
 
 #TODO: add additional classes for zoom of each fractal
 
 class Fractal():
-    def __init__(self, min_x, max_x, min_y, max_y, filename, color_map=None, R=4):
+    def __init__(self, min_x, max_x, min_y, max_y, filename, color_map=None, escape_radius=4):
         # 2560,1440; 1920,1080; 960,540; 480,270 
         self.dimen_x, self.dimen_y = 960, 540
         self.iterations = 250
-        self.R = R
+        self.R = escape_radius
 
         self.X = self.__setX(min_x, max_x, self.dimen_x)
         self.Y = self.__setY(min_y, max_y, self.dimen_y)
@@ -102,9 +102,9 @@ class Fractal():
 
 
 class Mandelbrot(Fractal):
-    def __init__(self, filename="mandelbrot.bmp", color_map=None, R=4):
+    def __init__(self, filename="mandelbrot.bmp", color_map=None, escape_radius=4):
         #print("Mandelbrot")
-        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, R)
+        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -122,9 +122,9 @@ class Mandelbrot(Fractal):
 
 
 class Mandelbar(Fractal):
-    def __init__(self, filename="mandelbar.bmp", color_map=None, R=4):
+    def __init__(self, filename="mandelbar.bmp", color_map=None, escape_radius=4):
         #print("Mandelbar")
-        super().__init__(-1.78, 1.78, -1, 1, filename, color_map, R)
+        super().__init__(-1.78, 1.78, -1, 1, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -142,9 +142,9 @@ class Mandelbar(Fractal):
 
 
 class PerpendicularMandelbrot(Fractal):
-    def __init__(self, filename="perpendicularMandelbrot.bmp", color_map=None, R=4):
+    def __init__(self, filename="perpendicularMandelbrot.bmp", color_map=None, escape_radius=4):
         #print("Perpendicular Mandelbrot")
-        super().__init__(-3.0, 2.33, -1.5, 1.5, filename, color_map, R)
+        super().__init__(-3.0, 2.33, -1.5, 1.5, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -162,9 +162,9 @@ class PerpendicularMandelbrot(Fractal):
 
 
 class Celtic(Fractal):
-    def __init__(self, filename="celtic.bmp", color_map=None, R=4):
+    def __init__(self, filename="celtic.bmp", color_map=None, escape_radius=4):
         #print("Celtic")
-        super().__init__(-4.12, 3.0, -2, 2, filename, color_map, R)
+        super().__init__(-4.12, 3.0, -2, 2, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -182,9 +182,9 @@ class Celtic(Fractal):
 
 
 class CelticMandelbar(Fractal):
-    def __init__(self, filename="celticMandelbar.bmp", color_map=None, R=4):
+    def __init__(self, filename="celticMandelbar.bmp", color_map=None, escape_radius=4):
         #print("Celtic Mandelbar")
-        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, R)
+        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -202,9 +202,9 @@ class CelticMandelbar(Fractal):
 
 
 class PerpendicularCeltic(Fractal):
-    def __init__(self, filename="perpendicularCeltic.bmp", color_map=None, R=4):
+    def __init__(self, filename="perpendicularCeltic.bmp", color_map=None, escape_radius=4):
         #print("Perpendicular Celtic)
-        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, R)
+        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -222,9 +222,9 @@ class PerpendicularCeltic(Fractal):
 
 
 class BurningShip(Fractal):
-    def __init__(self, filename="burningShip.bmp", color_map=None, R=4):
+    def __init__(self, filename="burningShip.bmp", color_map=None, escape_radius=4):
         #print("Burning Ship")
-        super().__init__(-3.0, 2.33, -2.0, 1.0, filename, color_map, R)
+        super().__init__(-3.0, 2.33, -2.0, 1.0, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -242,9 +242,9 @@ class BurningShip(Fractal):
 
 
 class HeartMandelbrot(Fractal):
-    def __init__(self, filename="heartMandelbrot.bmp", color_map=None, R=4):
+    def __init__(self, filename="heartMandelbrot.bmp", color_map=None, escape_radius=4):
         #print("Heart Mandelbrot)
-        super().__init__(-2.22, 1.33, -1, 1, filename, color_map, R)
+        super().__init__(-2.22, 1.33, -1, 1, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -262,9 +262,9 @@ class HeartMandelbrot(Fractal):
 
 
 class PerpendicularBurningShip(Fractal):
-    def __init__(self, filename="perpendicularBurningShip.bmp", color_map=None, R=4):
+    def __init__(self, filename="perpendicularBurningShip.bmp", color_map=None, escape_radius=4):
         #print("Perpendicular Burning Ship")
-        super().__init__(-3.0, 2.33, -1.5, 1.5, filename, color_map, R)
+        super().__init__(-3.0, 2.33, -1.5, 1.5, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -282,9 +282,9 @@ class PerpendicularBurningShip(Fractal):
 
 
 class Buffalo(Fractal):
-    def __init__(self, filename="buffalo.bmp", color_map=None, R=4):
+    def __init__(self, filename="buffalo.bmp", color_map=None, escape_radius=4):
         #print("Buffalo")
-        super().__init__(-3.33, 2.0, -2.0, 1.0, filename, color_map, R)
+        super().__init__(-3.33, 2.0, -2.0, 1.0, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -302,9 +302,9 @@ class Buffalo(Fractal):
 
 
 class CelticHeart(Fractal):
-    def __init__(self, filename="celticHeart.bmp", color_map=None, R=4):
+    def __init__(self, filename="celticHeart.bmp", color_map=None, escape_radius=4):
         #print("Celtic Heart)
-        super().__init__(-2.22, 1.33, -1.0, 1.0, filename, color_map, R)
+        super().__init__(-2.22, 1.33, -1.0, 1.0, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -322,9 +322,9 @@ class CelticHeart(Fractal):
 
 
 class PerpendicularBuffalo(Fractal):
-    def __init__(self, filename="perpendicularBuffalo.bmp", color_map=None, R=4):
+    def __init__(self, filename="perpendicularBuffalo.bmp", color_map=None, escape_radius=4):
         #print("Perpendicular Buffalo")
-        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, R)
+        super().__init__(-3.33, 2.0, -1.5, 1.5, filename, color_map, escape_radius)
         self.z = np.zeros((self.dimen_y, self.dimen_x), dtype=np.complex128)
         self.c = self.X+1j*self.Y
         self.run()
@@ -342,10 +342,10 @@ class PerpendicularBuffalo(Fractal):
 
 
 class Julia(Fractal):
-    def __init__(self, real, img, filename="julia.bmp", color_map=None, R=4):
+    def __init__(self, real, img, filename="julia.bmp", color_map=None, escape_radius=4):
         #print("Julia Set")
         c = real+1j*img
-        super().__init__(-2.67, 2.67, -1.5, 1.5, filename, color_map, R)
+        super().__init__(-2.67, 2.67, -1.5, 1.5, filename, color_map, escape_radius)
         self.z = self.X+1j*self.Y
         self.c = np.full((self.dimen_y, self.dimen_x), c, dtype=np.complex128)
         self.run()
