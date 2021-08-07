@@ -360,30 +360,16 @@ class Julia(Fractal):
         return self._get_colors()
 
 
-if __name__ == "__main__":
-
-    cm = ["blue-sepia","green-purple","pink-teal","orange-blue","indigo-green","black-white","white-black","purple","orange","cyan","blue","lime","pink","seablue","green","watermelon","red","indigo","shamrock", "barbour","wine","midnightblue","yellow","magenta","teal"]
-
-    '''
-    #for c in cm:
-        #print(c)
-    Mandelbrot(color_map=cm[3])
-    Mandelbar(color_map=cm[3])
-    PerpendicularMandelbrot(color_map=cm[3])
-    Celtic(color_map=cm[3])
-    CelticMandelbar(color_map=cm[3])
-    PerpendicularCeltic(color_map=cm[3])
-    BurningShip(color_map=cm[3])
-    HeartMandelbrot(color_map=cm[3])
-    PerpendicularBurningShip(color_map=cm[3])
-    Buffalo(color_map=cm[3])
-    CelticHeart(color_map=cm[3])
-    PerpendicularBuffalo(color_map=cm[3])
-    Julia(-0.835, -0.232, "julia1.bmp", cm[3])
-    Julia(-0.4, 0.6, "julia2.bmp", cm[3])
-    Julia(-0.8, 0.156, "julia3.bmp", cm[3])
-    Julia(-0.7269, 0.1889, "julia4.bmp", cm[3])
-    '''
-
-    Celtic(color_map=cm[3])
-    PerpendicularCeltic(color_map=cm[3])
+def showColormaps():
+    tmp = Fractal(0,0,0,0,"")
+    cm = tmp.color_maps
+    count = 1
+    print("Available color maps:")
+    print("\t", end="")
+    for c in cm:
+        if count%5 == 0:
+            print(c, end="\n")
+            print("\t", end="")
+        else:
+            print(c, end=", ")
+        count+=1
