@@ -4,12 +4,13 @@ import numpy as np
 #TODO: inspect all images and to adjust for centered
 #TODO: celtic and |-celtic 90deg rotation?
 
+#TODO: add additional classes for zoom of each fractal
 
 class Fractal():
     def __init__(self, min_x, max_x, min_y, max_y, filename, color_map=None, R=4):
         # 2560,1440; 1920,1080; 960,540; 480,270 
-        self.dimen_x, self.dimen_y = 480,270
-        self.iterations = 127
+        self.dimen_x, self.dimen_y = 960, 540
+        self.iterations = 250
         self.R = R
 
         self.X = self.__setX(min_x, max_x, self.dimen_x)
@@ -363,21 +364,26 @@ if __name__ == "__main__":
 
     cm = ["blue-sepia","green-purple","pink-teal","orange-blue","indigo-green","black-white","white-black","purple","orange","cyan","blue","lime","pink","seablue","green","watermelon","red","indigo","shamrock", "barbour","wine","midnightblue","yellow","magenta","teal"]
 
+    '''
     #for c in cm:
         #print(c)
-    Mandelbrot(color_map=cm[1])
-    Mandelbar(color_map=cm[2])
+    Mandelbrot(color_map=cm[3])
+    Mandelbar(color_map=cm[3])
     PerpendicularMandelbrot(color_map=cm[3])
-    Celtic(color_map=cm[4])
-    CelticMandelbar(color_map=cm[5])
-    PerpendicularCeltic(color_map=cm[6])
-    BurningShip(color_map=cm[7])
-    HeartMandelbrot(color_map=cm[8])
-    PerpendicularBurningShip(color_map=cm[9])
-    Buffalo(color_map=cm[10])
-    CelticHeart(color_map=cm[11])
-    PerpendicularBuffalo(color_map=cm[12])
-    Julia(-0.835, -0.232, "julia1.bmp", cm[13])
-    Julia(-0.4, 0.6, "julia2.bmp", cm[14])
-    Julia(-0.8, 0.156, "julia3.bmp", cm[15])
-    Julia(-0.7269, 0.1889, "julia4.bmp", cm[21])
+    Celtic(color_map=cm[3])
+    CelticMandelbar(color_map=cm[3])
+    PerpendicularCeltic(color_map=cm[3])
+    BurningShip(color_map=cm[3])
+    HeartMandelbrot(color_map=cm[3])
+    PerpendicularBurningShip(color_map=cm[3])
+    Buffalo(color_map=cm[3])
+    CelticHeart(color_map=cm[3])
+    PerpendicularBuffalo(color_map=cm[3])
+    Julia(-0.835, -0.232, "julia1.bmp", cm[3])
+    Julia(-0.4, 0.6, "julia2.bmp", cm[3])
+    Julia(-0.8, 0.156, "julia3.bmp", cm[3])
+    Julia(-0.7269, 0.1889, "julia4.bmp", cm[3])
+    '''
+
+    Celtic(color_map=cm[3])
+    PerpendicularCeltic(color_map=cm[3])
