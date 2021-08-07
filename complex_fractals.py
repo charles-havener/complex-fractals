@@ -1,5 +1,6 @@
 from PIL import Image
 import numpy as np
+import sys, inspect
 
 #TODO: inspect all images and to adjust for centered
 #TODO: celtic and |-celtic 90deg rotation?
@@ -373,3 +374,17 @@ def showColormaps():
         else:
             print(c, end=", ")
         count+=1
+    print("")
+
+def showClasses():
+    count = 1
+    print("Available classes:")
+    print("\t", end="")
+    for name, _ in inspect.getmembers(sys.modules[__name__], inspect.isclass):
+        if count%3 == 0:
+            print(name, end="\n")
+            print("\t", end="")
+        else:
+            print(name, end=", ")
+        count+=1
+    print("")
