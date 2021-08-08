@@ -5,6 +5,9 @@ import numpy as np
 import sys, inspect
 import math
 
+#TODO GPU render option: http://numba.pydata.org/numba-doc/latest/cuda/
+#  2 run functions in each subclass (one for gpu, one for cpu)
+#  based off of passed boolean value gpu (True or False for gpu or cpu respectively)
 
 #TODO: add additional classes for zoom of each fractal
 
