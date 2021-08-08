@@ -7,7 +7,7 @@
 
   <p align="center">
     Image generation of various fractals in the complex plane.
-    <!-- TODO: create some high rez images for an imgur gallery?
+    <!-- TODO: create some high rez images/gifs for an imgur gallery?
     <br />
     <a href="https://imgur.com/gallery/jqMogwz"><strong>4000x4000 Example Output Images »</strong></a>
     <br />
@@ -27,17 +27,16 @@
 
 <br>
 
-
-# About The Project
-
 ### Todo List
 - <del>Add additional fractals</del>
 - <del>Add color map options</del>
-- Add zooming options to create zoom animations (will require use of Decimal for high precision with deeper zooms)
+- Add zooming options to create zoom animations (deeper zooms will require use of Decimal or some other high precision library)
 - GPU rendering option
 - <del>Create SVG images for LaTeX formulas since github doesn't render them</del>
 
 <br>
+
+# About The Project
 
 ## How it Works
 
@@ -50,8 +49,29 @@ Generated the same way as general complex fractals, however <!-- $\color{#83a598
 <br>
 
 
+<!-- PARAMS
+    aspect_ratio: either "16:9" or "21:9" anything else will be a square image that may look warped
+    xdim: width of the image (height calculated off of aspect ratio)
+    coords: [min_x, max_x, min_y, max_y]
+    filename: name of output file
+    color_map: option via showColormaps()
+    max_iterations: max iteration to hit for point to be considered in set
+    escape_radius: points who iterate to value outside of this value are considered out of set
+
+    julia has additional parameters:
+    real, imag: (Re, Im) point on the complex plane to generate for
+-->
+
+
 ## Fractal Types and Color Maps
 <br>
+
+```python
+from complex_fractals import * # import all classes and functions
+
+showClasses() # list class names of fractal types in console
+showColormaps() # list color map options in console
+```
 
 <p align="left">
   <img src="Images\FractalTypes.png" alt="Line Examples" width="1000">
