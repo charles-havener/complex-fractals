@@ -4,10 +4,11 @@
 /__pycache__
 /.vs
 
-# image files only in main directory
-/*.bmp
-/*.png
-/*.jpg
+# ignore images not in the Images folder
+*.png
+*.jpg
+!/Images/**/*.jpg
+!/Images/**/*.png
 
 #gimp files
 *.xcf
