@@ -15,7 +15,7 @@ from numba import cuda, jit
 #todo and an additional class para bool julia, with args for the re,im coords for the julia set?
 
 
-#? Improvements/changes
+#? Improvements/changes before merge into main
 
 #todo add in the other fractals below
 
@@ -25,6 +25,17 @@ from numba import cuda, jit
 #todo a is average, t is addend (Jussi 4.1 Average Colorings)
 
 #todo change overlay function name to blend, vars to smooth_iter, addend, and stripe_weight
+
+#todo recreate readme with new images, and a showing of how hard to understand parameters effect output
+
+#todo verify requirements are still correct
+
+#todo update gitignore to ignore more image types
+#todo could add folder called assets then after ignoring all image extensions
+#todo add lines such as: 
+#todo   !/assets/**/*.png,
+#todo   !/assets/**/*.bmp,
+#todo   !/assets/**/*.jpg, etc...
 
 '''main.py
 
