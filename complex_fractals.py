@@ -21,9 +21,6 @@ from numba import cuda, jit
 
 #todo user input for g in overlay function (visibility of stripes coming through in final image) [stripe_weight?]
 
-#todo rename of stripe_s and stripe_w, maybe also stripe_t and stripe_a in functions to be more descriptive
-#todo a is average, t is addend (Jussi 4.1 Average Colorings)
-
 #todo change overlay function name to blend, vars to smooth_iter, addend, and stripe_weight
 
 #todo recreate readme with new images, and a showing of how hard to understand parameters effect output
@@ -83,21 +80,21 @@ Indexed based on order added
 '''
 
 @jit
-def color(matri, smooth_iter, stripe_a, stripe_s, stripe_w, cm, cycle_count):
+def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, cm, cycle_count):
     """[summary]
 
     Args:
         matri (list): the real,imaginary location in the matrix to overide the RGB value of
         smooth_iter (float): the smooth iteration count of the pixel
-        stripe_a (float): the value of the addend function for the pixel
-        stripe_s (int): the stripe density
-        stripe_w (float): the weight of the historical orbit
+        stripe_avg (float): the value of the addend function for the pixel
+        stripe_density (int): the stripe density
+        stripe_memory (float): the weight of the historical orbit
         cm (ColorMap.colormap): the colormap used to color the fractal
         cycle_count (int): the number of iterations before the colormap cycles back to the start
     """
 
     # Custom mixing. Gives nicer results than 50% mix.
-    def overlay(i, a, g):
+    def overlay(i, a, blend_weight):
         """Mixes a channel of the smooth iteration count color (i) with the branching value (a) of
         the coordinate.
         #todo add example images to github
@@ -105,7 +102,7 @@ def color(matri, smooth_iter, stripe_a, stripe_s, stripe_w, cm, cycle_count):
         Args:
             i (float): a channel value assigned to the smooth iteration [0,1]
             a (float): value of the addend function for the point [0,1]
-            g (float): gamma value, how far 'warped' from the second image the mixing is [0,1]
+            blend_weight (float): how strong the showing of the stripes is ontop of the smooth color image
 
         Returns:
             float: the mixed channel value for the pixel
@@ -114,7 +111,7 @@ def color(matri, smooth_iter, stripe_a, stripe_s, stripe_w, cm, cycle_count):
             o = 2*i*a
         else:
             o = 1 - 2*(1-i)*(1-a)
-        return o*g + i*(1-g)
+        return o*blend_weight + i*(1-blend_weight)
 
     # Power transform and map to [0,1]
     smooth_iter = math.sqrt(smooth_iter)%cycle_count/cycle_count
@@ -123,19 +120,19 @@ def color(matri, smooth_iter, stripe_a, stripe_s, stripe_w, cm, cycle_count):
     # Assign value to each channel
     for i in range(3):
         matri[i] = cm[col, i]
-        if stripe_a>0 and stripe_w>0:
-            matri[i] = overlay(matri[i], stripe_a, 1)
+        if stripe_avg>0 and stripe_memory>0:
+            matri[i] = overlay(matri[i], stripe_avg, 1)
         matri[i] = max(0, min(1, matri[i])) # Enusure [0,1]
 
 @jit
-def smooth_iter(c, iter_max, stripe_s, stripe_w, identifier=0):
+def smooth_iter(c, iter_max, stripe_density, stripe_memory, identifier=0):
     """Determine the smooth iteration count value of the pixel and the value of it's addend function.
 
     Args:
         c (complex): a value used in the iteration function of the fractal. Serves a different purpose for differnt fractals.
         iter_max (int): maximum number of iterations to run through to determine if a point is part of the set
-        stripe_s (int): the density of stripes
-        stripe_w (float): memory parameter of historical orbit
+        stripe_density (int): the density of stripes
+        stripe_memory (float): memory parameter of historical orbit
         identifier (int, optional): unique id of the calling class, used to determine iteration function. Defaults to 0.
 
     Returns:
@@ -145,8 +142,8 @@ def smooth_iter(c, iter_max, stripe_s, stripe_w, identifier=0):
     z = complex(0,0)
 
     # Flag to only compute stripe values if relevant params are non-zero
-    stripe = stripe_s>0 and stripe_w>0
-    stripe_a = 0 # holds addend function value
+    stripe = stripe_density>0 and stripe_memory>0
+    stripe_avg = 0 # holds average of addend function value
 
     for n in range(iter_max):
         if identifier == 0: # Mandelbrot
@@ -154,8 +151,8 @@ def smooth_iter(c, iter_max, stripe_s, stripe_w, identifier=0):
 
         # calculate addend
         if stripe:
-            stripe_t = (math.cos(stripe_s*math.atan2(z.imag, z.real))+1)/2 # Cos is symmetrical
-            #stripe_t = (math.sin(stripe_s*math.atan2(z.imag, z.real))+1)/2 # Sin used in paper
+            addend = (math.cos(stripe_density*math.atan2(z.imag, z.real))+1)/2 # Cos is symmetrical
+            #addend = (math.sin(stripe_density*math.atan2(z.imag, z.real))+1)/2 # Sin used in paper
         
         # Check for escape
         if z.real*z.real + z.imag*z.imag > escape_radius_squared:
@@ -164,18 +161,18 @@ def smooth_iter(c, iter_max, stripe_s, stripe_w, identifier=0):
             smooth = 1 + math.log(factor)/math.log(2)
             
             if stripe:
-                stripe_a = (stripe_a*(1+smooth*(stripe_w-1))+stripe_t*smooth*(1-stripe_w))
+                stripe_avg = (stripe_avg*(1+smooth*(stripe_memory-1))+addend*smooth*(1-stripe_memory))
 
-            return (n+smooth, stripe_a)
+            return (n+smooth, stripe_avg)
         
         if stripe:
-            stripe_a = stripe_a*stripe_w + stripe_t*(1-stripe_w)
+            stripe_avg = stripe_avg*stripe_memory + addend*(1-stripe_memory)
         
     # Never escaping -> part of set and return 0s
     return (0,0)
 
 @jit
-def compute_set(real_range, imag_range, iter_max, cm, cycle_count, stripe_s, stripe_w, identifier):
+def compute_set(real_range, imag_range, iter_max, cm, cycle_count, stripe_density, stripe_memory, identifier):
     """Create the fractal image using the CPU. Much slower than the GPU version.
 
     Args:
@@ -186,8 +183,8 @@ def compute_set(real_range, imag_range, iter_max, cm, cycle_count, stripe_s, str
         cm (ColorMap.colormap): the colormap to be used when coloring the set
         cycle_count (int): the number of iterations before the color map cycles back to the 
             beginning. Higher values lead to slower transitions between colors.
-        stripe_s (int): Can be thought of as the density of stripes in the output. Should be >= 0
-        stripe_w (float): The weight of the past addend function value to be carried forward 
+        stripe_density (int): Can be thought of as the density of stripes in the output. Should be >= 0
+        stripe_memory (float): The weight of the past addend function value to be carried forward 
             through the iterations. A memeory parameter of the orbital history.
 
     Returns:
@@ -204,14 +201,14 @@ def compute_set(real_range, imag_range, iter_max, cm, cycle_count, stripe_s, str
     for r in range(real_pixels):
         for i in range(imag_pixels):
             c = complex(real_range[r], imag_range[i])
-            smooth_i, stripe_a = smooth_iter(c, iter_max, stripe_s, stripe_w, identifier)
+            smooth_i, stripe_avg = smooth_iter(c, iter_max, stripe_density, stripe_memory, identifier)
             if smooth_i > 0:
-                color(mat[i,r,], smooth_i, stripe_a, stripe_s, stripe_w, cm, cycle_count)
+                color(mat[i,r,], smooth_i, stripe_avg, stripe_density, stripe_memory, cm, cycle_count)
     return mat
 
 @cuda.jit
 def compute_set_gpu(mat, real_min, real_max, imag_min, imag_max, iter_max, cm, 
-                    cycle_count, stripe_s, stripe_w, identifier):
+                    cycle_count, stripe_density, stripe_memory, identifier):
     """Create the fractal image using the GPU to do the bulk of the work. Much faster than
     the CPU alternative. Required CUDA tookit for numba's cuda.jit to work.
 
@@ -226,8 +223,8 @@ def compute_set_gpu(mat, real_min, real_max, imag_min, imag_max, iter_max, cm,
         cm (ColorMap.colormap): the colormap to be used when coloring the set
         cycle_count (int): the number of iterations before the color map cycles back to the 
             beginning. Higher values lead to slower transitions between colors.
-        stripe_s (int): Can be thought of as the density of stripes in the output. Should be >= 0.
-        stripe_w (float): The weight of the past addend function value to be carried forward 
+        stripe_density (int): Can be thought of as the density of stripes in the output. Should be >= 0.
+        stripe_memory (float): The weight of the past addend function value to be carried forward 
             through the iterations. A memory parameter of the orbital history.
         identifier (int): the unique value assigned to the calling class
     """
@@ -239,9 +236,9 @@ def compute_set_gpu(mat, real_min, real_max, imag_min, imag_max, iter_max, cm,
         real = real_min+r/(mat.shape[1]-1)*(real_max-real_min)
         imag = imag_min+i/(mat.shape[0]-1)*(imag_max-imag_min)
         c = complex(real, imag)
-        smooth_i, stripe_a = smooth_iter(c, iter_max, stripe_s, stripe_w, identifier)
+        smooth_i, stripe_avg = smooth_iter(c, iter_max, stripe_density, stripe_memory, identifier)
         if smooth_i > 0:
-            color(mat[i,r,], smooth_i, stripe_a, stripe_s, stripe_w, cm, cycle_count)
+            color(mat[i,r,], smooth_i, stripe_avg, stripe_density, stripe_memory, cm, cycle_count)
 
 
 class ColorMap:
@@ -290,7 +287,7 @@ class ComplexFractal:
 
     def __init__(self, im_range, center, identifier, width=1920, aspect_ratio="16:9", cycle_count=16,
         oversample=2, real=-0.3775, imag=0.0, zoom=1, rgb_phases=[0.0, 0.8, 0.15], random_phases=False, 
-        iter_max=350, stripe_s=2, stripe_w=.9, gpu=False):
+        iter_max=350, stripe_density=2, stripe_memory=.9, gpu=False):
         """The main class for creating fractals in the complex plane
 
         Args:
@@ -307,8 +304,8 @@ class ComplexFractal:
             rgb_phases (list, optional): the phase of each channel in the cyclic color map to be created. Defaults to [0.0, 0.8, 0.15].
             random_phases (bool, optional): Use a random colormap. If true, overrides any passed rgb_phases. Defaults to False.
             iter_max (int, optional): Maximum number of iterations to run through before deciding a point is part of the set. Defaults to 350.
-            stripe_s (int, optional): The density of the stripes. 0 for no stripes. Defaults to 2.
-            stripe_w (float, optional): The weight of the historical orbit on the final value of the addend function. Defaults to .9.
+            stripe_density (int, optional): The density of the stripes. 0 for no stripes. Defaults to 2.
+            stripe_memory (float, optional): The weight of the historical orbit on the final value of the addend function. Defaults to .9.
             gpu (bool, optional): Compute with GPU or with CPU. True->GPU. Defaults to False.
         """
 
@@ -324,8 +321,8 @@ class ComplexFractal:
         self.rgb_phases = rgb_phases
         self.random_phases = random_phases
         self.iter_max = iter_max
-        self.stripe_s = stripe_s
-        self.stripe_w = stripe_w
+        self.stripe_density = stripe_density
+        self.stripe_memory = stripe_memory
         self.gpu = gpu
 
         # Arguments from subclass
@@ -438,14 +435,14 @@ class ComplexFractal:
             num_blocks = math.ceil(pixel_count/num_threads)
             
             compute_set_gpu[num_blocks, num_threads](self.set, real_min, real_max, imag_min, imag_max,
-                self.iter_max, self.cm, self.cycle_count, self.stripe_s, self.stripe_w, self.identifier)
+                self.iter_max, self.cm, self.cycle_count, self.stripe_density, self.stripe_memory, self.identifier)
 
         # Create the set using CPU
         else:
             real_range = np.linspace(real_min, real_max, real_points)
             imag_range = np.linspace(imag_min, imag_max, imag_points)
             self.set = compute_set(real_range, imag_range, self.iter_max, self.cm,
-                cycle_count, self.stripe_s, self.stripe_w, self.identifier)
+                cycle_count, self.stripe_density, self.stripe_memory, self.identifier)
 
         self.set = (255*self.set).astype(np.uint8)
 
@@ -493,7 +490,7 @@ class Mandelbrot(ComplexFractal):
     def __init__(self, width=1920, aspect_ratio="16:9", iter_max=750,
         oversample=3, real=-.3775, imag=0, zoom=1,
         rgb_phases=[0.0, 0.8, 0.15], random_phases=False, cycle_count=50,
-        stripe_s=2, stripe_w=.9, gpu=False):
+        stripe_density=2, stripe_memory=.9, gpu=False):
         """Creates the mandelbrot set
         See ComplexFractal class for description of arguments
         """
@@ -532,9 +529,9 @@ class Mandelbrot(ComplexFractal):
 if __name__ == "__main__":
     real = -1.749705768080503
     imag = 6.13369029080495e-05
-    f = Mandelbrot(stripe_s=2, rgb_phases=[0.5415155184227949,0.26203459358292536,0.1305322686383903],
-         width=340, zoom=2**2, real=real, imag=imag, iter_max=600, random_phases=False, gpu=False,
-         oversample=3, aspect_ratio="16:9", cycle_count=50, stripe_w=0.9)
+    f = Mandelbrot(stripe_density=2, rgb_phases=[0.5415155184227949,0.26203459358292536,0.1305322686383903],
+         width=340, zoom=2**2, real=real, imag=imag, iter_max=600, random_phases=True, gpu=False,
+         oversample=3, aspect_ratio="16:9", cycle_count=50, stripe_memory=0.9)
     f.draw()
     #f.animate(end=2**45, rate=1.1)
 
@@ -544,7 +541,7 @@ if __name__ == "__main__":
     '''
     real = -1.749705768080503
     imag = 6.13369029080495e-05
-    f = Mandelbrot(stripe_s=5, rgb_phases=[.8, .8, .8],
+    f = Mandelbrot(stripe_density=5, rgb_phases=[0.5415155184227949,0.26203459358292536,0.1305322686383903],
          width=6880, zoom=2**35.50, real=real, imag=imag, iter_max=20000, random_phases=False, gpu=True,
          oversample=3, aspect_ratio="21:9", cycle_count=16)
     f.draw()
