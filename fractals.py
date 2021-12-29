@@ -4,7 +4,7 @@ class Mandelbrot(ComplexFractal):
     def __init__(self, width=1920, aspect_ratio="16:9", iter_max=750,
         oversample=3, real=-.3775, imag=0, zoom=1,
         rgb_phases=[0.0, 0.8, 0.15], random_phases=False, cycle_count=50,
-        stripe_density=2, stripe_memory=.9, gpu=False):
+        stripe_density=2, stripe_memory=.9, blend_factor=1.0, gpu=False):
         """Creates the mandelbrot set
         See ComplexFractal class for description of arguments
         """

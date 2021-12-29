@@ -47,7 +47,7 @@ Indexed based on order added
 '''
 
 @jit
-def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, cm, cycle_count):
+def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, blend_factor, cm, cycle_count):
     """[summary]
 
     Args:
@@ -61,7 +61,7 @@ def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, cm, cyc
     """
 
     # Custom mixing. Gives nicer results than 50% mix.
-    def blend(i, a, blend_weight):
+    def blend(i, a, blend_factor):
         """Mixes a channel of the smooth iteration count color (i) with the branching value (a) of
         the coordinate.
         #todo add example images to github
@@ -78,7 +78,7 @@ def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, cm, cyc
             o = 2*i*a
         else:
             o = 1 - 2*(1-i)*(1-a)
-        return o*blend_weight + i*(1-blend_weight)
+        return o*blend_factor + i*(1-blend_factor)
 
     # Power transform and map to [0,1]
     smooth_iter = math.sqrt(smooth_iter)%cycle_count/cycle_count
@@ -88,7 +88,7 @@ def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, cm, cyc
     for i in range(3):
         matri[i] = cm[col, i]
         if stripe_avg>0 and stripe_memory>0:
-            matri[i] = blend(matri[i], stripe_avg, 1)
+            matri[i] = blend(matri[i], stripe_avg, blend_factor)
         matri[i] = max(0, min(1, matri[i])) # Enusure [0,1]
 
 @jit
@@ -139,7 +139,8 @@ def smooth_iter(c, iter_max, stripe_density, stripe_memory, identifier=0):
     return (0,0)
 
 @jit
-def compute_set(real_range, imag_range, iter_max, cm, cycle_count, stripe_density, stripe_memory, identifier):
+def compute_set(real_range, imag_range, iter_max, cm, cycle_count, stripe_density, 
+                stripe_memory, blend_factor, identifier):
     """Create the fractal image using the CPU. Much slower than the GPU version.
 
     Args:
@@ -170,12 +171,13 @@ def compute_set(real_range, imag_range, iter_max, cm, cycle_count, stripe_densit
             c = complex(real_range[r], imag_range[i])
             smooth_i, stripe_avg = smooth_iter(c, iter_max, stripe_density, stripe_memory, identifier)
             if smooth_i > 0:
-                color(mat[i,r,], smooth_i, stripe_avg, stripe_density, stripe_memory, cm, cycle_count)
+                color(mat[i,r,], smooth_i, stripe_avg, stripe_density, stripe_memory, 
+                      blend_factor, cm, cycle_count)
     return mat
 
 @cuda.jit
 def compute_set_gpu(mat, real_min, real_max, imag_min, imag_max, iter_max, cm, 
-                    cycle_count, stripe_density, stripe_memory, identifier):
+                    cycle_count, stripe_density, stripe_memory, blend_factor, identifier):
     """Create the fractal image using the GPU to do the bulk of the work. Much faster than
     the CPU alternative. Required CUDA tookit for numba's cuda.jit to work.
 
@@ -205,7 +207,7 @@ def compute_set_gpu(mat, real_min, real_max, imag_min, imag_max, iter_max, cm,
         c = complex(real, imag)
         smooth_i, stripe_avg = smooth_iter(c, iter_max, stripe_density, stripe_memory, identifier)
         if smooth_i > 0:
-            color(mat[i,r,], smooth_i, stripe_avg, stripe_density, stripe_memory, cm, cycle_count)
+            color(mat[i,r,], smooth_i, stripe_avg, stripe_density, stripe_memory, blend_factor, cm, cycle_count)
 
 
 class ColorMap:
@@ -254,7 +256,7 @@ class ComplexFractal:
 
     def __init__(self, im_range, center, identifier, width=1920, aspect_ratio="16:9", cycle_count=16,
         oversample=2, real=-0.3775, imag=0.0, zoom=1, rgb_phases=[0.0, 0.8, 0.15], random_phases=False, 
-        iter_max=350, stripe_density=2, stripe_memory=.9, gpu=False):
+        iter_max=350, stripe_density=2, stripe_memory=.9, blend_factor=1.0, gpu=False):
         """The main class for creating fractals in the complex plane
 
         Args:
@@ -290,6 +292,7 @@ class ComplexFractal:
         self.iter_max = iter_max
         self.stripe_density = stripe_density
         self.stripe_memory = stripe_memory
+        self.blend_factor = blend_factor
         self.gpu = gpu
 
         # Arguments from subclass
@@ -402,14 +405,15 @@ class ComplexFractal:
             num_blocks = math.ceil(pixel_count/num_threads)
             
             compute_set_gpu[num_blocks, num_threads](self.set, real_min, real_max, imag_min, imag_max,
-                self.iter_max, self.cm, self.cycle_count, self.stripe_density, self.stripe_memory, self.identifier)
+                self.iter_max, self.cm, self.cycle_count, self.stripe_density, self.stripe_memory, 
+                self.blend_factor, self.identifier)
 
         # Create the set using CPU
         else:
             real_range = np.linspace(real_min, real_max, real_points)
             imag_range = np.linspace(imag_min, imag_max, imag_points)
-            self.set = compute_set(real_range, imag_range, self.iter_max, self.cm,
-                cycle_count, self.stripe_density, self.stripe_memory, self.identifier)
+            self.set = compute_set(real_range, imag_range, self.iter_max, self.cm, cycle_count, 
+            self.stripe_density, self.stripe_memory, self.blend_factor, self.identifier)
 
         self.set = (255*self.set).astype(np.uint8)
 
