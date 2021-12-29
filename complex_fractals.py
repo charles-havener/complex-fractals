@@ -23,8 +23,6 @@ from numba import cuda, jit
 
 #todo recreate readme with new images, and a showing of how hard to understand parameters effect output
 
-#todo verify requirements are still correct
-
 #todo update gitignore to ignore more image types
 #todo could add folder called assets then after ignoring all image extensions
 #todo add lines such as: 
@@ -482,65 +480,3 @@ class ComplexFractal:
             print(f"Created {i+1} of {images_to_create} ({(i+1)/images_to_create:.2%})")
             self.zoom *= rate
         self.zoom = zoom_store
-
-
-class Mandelbrot(ComplexFractal):
-    def __init__(self, width=1920, aspect_ratio="16:9", iter_max=750,
-        oversample=3, real=-.3775, imag=0, zoom=1,
-        rgb_phases=[0.0, 0.8, 0.15], random_phases=False, cycle_count=50,
-        stripe_density=2, stripe_memory=.9, gpu=False):
-        """Creates the mandelbrot set
-        See ComplexFractal class for description of arguments
-        """
-
-        # The range of the imaginary axis. 
-        # Used to determine range of real axes in super call
-        im_range = 2.5
-
-        # The 'center' point of the fractal
-        # Used when creating images at non center point and zoom animations to ensure 
-        # that images stay around center until zoom is deep enough to not
-        center = complex(-0.3775, 0.0)
-
-        # Unique identifier for this fractal type
-        identifier = 0
-
-        # Call init of parent class, with all kwargs of this subclass' constructor
-        loc = locals()
-        loc.pop('self', None)
-        loc.pop('__class__', None)
-        super().__init__(**loc)
-
-    def draw(self, filename="mandelbrot"):
-        """Create a singular output image
-        See _draw method of ComplexFractal class
-        """
-        self._draw(filename)
-    
-    def animate(self, start=1, end=2**30, rate=2, filename="mandelbrot_anim"):
-        """Create a series of images that when played in order animate a zoom on the set
-        See _animate method of ComplexFractal class
-        """
-        self._animate(start, end, rate, filename)
-
-
-if __name__ == "__main__":
-    real = -1.749705768080503
-    imag = 6.13369029080495e-05
-    f = Mandelbrot(stripe_density=2, rgb_phases=[0.5415155184227949,0.26203459358292536,0.1305322686383903],
-         width=340, zoom=2**2, real=real, imag=imag, iter_max=600, random_phases=True, gpu=False,
-         oversample=3, aspect_ratio="16:9", cycle_count=50, stripe_memory=0.9)
-    f.draw()
-    #f.animate(end=2**45, rate=1.1)
-
-    #c = ColorMap(random_phases=True)
-    #c.preview_colormap()
-
-    '''
-    real = -1.749705768080503
-    imag = 6.13369029080495e-05
-    f = Mandelbrot(stripe_density=5, rgb_phases=[0.5415155184227949,0.26203459358292536,0.1305322686383903],
-         width=6880, zoom=2**35.50, real=real, imag=imag, iter_max=20000, random_phases=False, gpu=True,
-         oversample=3, aspect_ratio="21:9", cycle_count=16)
-    f.draw()
-    '''
