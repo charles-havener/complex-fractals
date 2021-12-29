@@ -19,9 +19,7 @@ from numba import cuda, jit
 
 #todo add in the other fractals below
 
-#todo user input for g in overlay function (visibility of stripes coming through in final image) [stripe_weight?]
-
-#todo change overlay function name to blend, vars to smooth_iter, addend, and stripe_weight
+#todo user input for blend_weight in blund function (visibility of stripes coming through in final image)
 
 #todo recreate readme with new images, and a showing of how hard to understand parameters effect output
 
@@ -94,7 +92,7 @@ def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, cm, cyc
     """
 
     # Custom mixing. Gives nicer results than 50% mix.
-    def overlay(i, a, blend_weight):
+    def blend(i, a, blend_weight):
         """Mixes a channel of the smooth iteration count color (i) with the branching value (a) of
         the coordinate.
         #todo add example images to github
@@ -121,7 +119,7 @@ def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, cm, cyc
     for i in range(3):
         matri[i] = cm[col, i]
         if stripe_avg>0 and stripe_memory>0:
-            matri[i] = overlay(matri[i], stripe_avg, 1)
+            matri[i] = blend(matri[i], stripe_avg, 1)
         matri[i] = max(0, min(1, matri[i])) # Enusure [0,1]
 
 @jit
