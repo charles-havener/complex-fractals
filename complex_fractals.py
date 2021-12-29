@@ -3,33 +3,6 @@ import numpy as np
 import math
 from numba import cuda, jit
 
-#? Future features
-
-#todo redo input scheme to be similar to plotly if possible?
-
-#todo custom color maps? list of #FFFFFFs passed in and smoothly loops and interpolates between them (max 5?)
-
-#todo add triangle inequality and curvature average coloring on top of stripe?
-
-#todo add julia sets for each fractal. might need new compute sets functions to swap z,c
-#todo and an additional class para bool julia, with args for the re,im coords for the julia set?
-
-
-#? Improvements/changes before merge into main
-
-#todo add in the other fractals below
-
-#todo user input for blend_weight in blund function (visibility of stripes coming through in final image)
-
-#todo recreate readme with new images, and a showing of how hard to understand parameters effect output
-
-#todo update gitignore to ignore more image types
-#todo could add folder called assets then after ignoring all image extensions
-#todo add lines such as: 
-#todo   !/assets/**/*.png,
-#todo   !/assets/**/*.bmp,
-#todo   !/assets/**/*.jpg, etc...
-
 '''main.py
 
 Identifiers (since passing strings to gpu was causing issues):
@@ -37,8 +10,6 @@ Indexed based on order added
 
 0 -> Mandelbrot
 (z.real**2 - z.imag**2 + c.real)+1j*(2*z.real*z.imag+c.imag)
-
-#TODO add the following:
 
 1 -> Mandelbar
 (z.real**2 - z.imag**2 + c.real)+1j*(-2*z.real*z.imag+c.imag)
