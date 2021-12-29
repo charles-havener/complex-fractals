@@ -3,47 +3,21 @@ import numpy as np
 import math
 from numba import cuda, jit
 
-'''main.py
-
+'''
 Identifiers (since passing strings to gpu was causing issues):
 Indexed based on order added
-
 0 -> Mandelbrot
-(z.real**2 - z.imag**2 + c.real)+1j*(2*z.real*z.imag+c.imag)
-
 1 -> Mandelbar
-(z.real**2 - z.imag**2 + c.real)+1j*(-2*z.real*z.imag+c.imag)
-
 2 -> PerpendicularMandelbrot
-(z.real**2 - z.imag**2 + c.real)+1j*(-2*z.imag*abs(z.real)+c.imag)
-
 3 -> Celtic
-(abs(z.real**2 - z.imag**2) + c.real)+1j*(2*z.real*z.imag+c.imag)
-
 4 -> CelticMandelbar
-(abs(z.real**2 - z.imag**2) + c.real)+1j*(-2*z.real*z.imag+c.imag)
-
 5 -> PerpendicularCeltic
-(abs(z.real**2 - z.imag**2) + c.real)+1j*(-2*abs(z.real)*z.imag+c.imag)
-
 6 -> BurningShip
-(z.real**2 - z.imag**2 + c.real) + 1j*(2*abs(z.imag*z.real) + c.imag)
-
 7 -> HeartMandelbrot
-(z.real**2 - z.imag**2 + c.real) + 1j*(2*z.imag*abs(z.real)+c.imag)
-
 8 -> PerpendicularBurningShip
-(z.real**2 - z.imag**2 + c.real) + 1j*(2*z.real*abs(z.imag)+c.imag)
-
 9 -> Buffalo
-(abs(z.real**2 - z.imag**2) + c.real) + 1j*(2*abs(z.real*z.imag)+c.imag)
-
 10 -> HeartCeltic
-(abs(z.real**2 - z.imag**2) + c.real) + 1j*(2*abs(z.real)*z.imag+c.imag)
-
 11 -> PerpendicularBuffalo
-(abs(z.real**2 - z.imag**2) + c.real) + 1j*(2*abs(z.imag)*z.real+c.imag)
-
 '''
 
 @jit
@@ -115,6 +89,28 @@ def smooth_iter(c, iter_max, stripe_density, stripe_memory, identifier=0):
     for n in range(iter_max):
         if identifier == 0: # Mandelbrot
             z = (z.real**2 - z.imag**2 + c.real)+1j*(2*z.real*z.imag+c.imag)
+        elif identifier == 1: # Mandelbar
+            z = (z.real**2 - z.imag**2 + c.real)+1j*(-2*z.real*z.imag+c.imag)
+        elif identifier == 2: # PerpendicularMandelbrot
+            z = (z.real**2 - z.imag**2 + c.real)+1j*(-2*z.imag*abs(z.real)+c.imag)
+        elif identifier == 3: # CelticMandelbrot
+            z = (abs(z.real**2 - z.imag**2) + c.real)+1j*(2*z.real*z.imag+c.imag)
+        elif identifier == 4: # CelticMandelbar
+            z = (abs(z.real**2 - z.imag**2) + c.real)+1j*(-2*z.real*z.imag+c.imag)
+        elif identifier == 5: # PerpendicularCeltic
+            z = (abs(z.real**2 - z.imag**2) + c.real)+1j*(-2*abs(z.real)*z.imag+c.imag)
+        elif identifier == 6: # BurningShip
+            z = (z.real**2 - z.imag**2 + c.real) + 1j*(-2*abs(z.imag*z.real) + c.imag)
+        elif identifier == 7: # HeartMandelbrot
+            z = (z.real**2 - z.imag**2 + c.real) + 1j*(2*z.imag*abs(z.real)+c.imag)
+        elif identifier == 8: # PerpendicularBurningShip
+            z = (z.real**2 - z.imag**2 + c.real) + 1j*(-2*z.real*abs(z.imag)+c.imag)
+        elif identifier == 9: # Buffalo
+            z = (abs(z.real**2 - z.imag**2) + c.real) + 1j*(-2*abs(z.real*z.imag)+c.imag)
+        elif identifier == 10: # HeartCeltic
+            z = (abs(z.real**2 - z.imag**2) + c.real) + 1j*(2*abs(z.real)*z.imag+c.imag)
+        elif identifier == 11: # PerpendicularBuffalo
+            z = (abs(z.real**2 - z.imag**2) + c.real) + 1j*(2*abs(z.imag)*z.real+c.imag)
 
         # calculate addend
         if stripe:
