@@ -2,6 +2,7 @@ from PIL import Image
 import numpy as np
 import math
 from numba import cuda, jit
+from fractal_types import f_type_identifiers, f_type_parameters
 
 '''
 Identifiers (since passing strings to gpu was causing issues):
@@ -9,7 +10,7 @@ Indexed based on order added
 0 -> Mandelbrot
 1 -> Mandelbar
 2 -> PerpendicularMandelbrot
-3 -> Celtic
+3 -> CelticMandelbrot
 4 -> CelticMandelbar
 5 -> PerpendicularCeltic
 6 -> BurningShip
@@ -250,15 +251,13 @@ class ColorMap:
 class ComplexFractal:
     """The main class used to create fractals within the complex plane."""
 
-    def __init__(self, im_range, center, identifier, width=1920, aspect_ratio="16:9", cycle_count=16,
-        oversample=2, real=-0.3775, imag=0.0, zoom=1, rgb_phases=[0.0, 0.8, 0.15], random_phases=False, 
+    def __init__(self, identifier, width=480, aspect_ratio="16:9", cycle_count=16, oversample=2, 
+        real=-0.3775, imag=0.0, zoom=1, rgb_phases=[0.0, 0.8, 0.15], random_phases=True, 
         iter_max=350, stripe_density=2, stripe_memory=.9, blend_factor=1.0, gpu=False):
         """The main class for creating fractals in the complex plane
 
         Args:
-            im_range (float): the range of the imaginary axis of the fractal. Passed from subclass.
-            center (complex): the center point of the fractal. Passed from subclass
-            identifier (int): the unique id of the subclass. Passed from subclass
+            identifier (int): the string or int used to specify a fractal type
             width (int, optional): the width of the image to be outpu. Defaults to 1920.
             aspect_ratio (str, optional): The desired aspect ratio of the outpu image. Defaults to "16:9".
             cycle_count (int, optional): Number of iterations before cycling back to the start of the colormap. Defaults to 16.
@@ -291,10 +290,11 @@ class ComplexFractal:
         self.blend_factor = blend_factor
         self.gpu = gpu
 
-        # Arguments from subclass
-        self.identifier = identifier
-        self.center = center
-        self.im_range = im_range
+        # Arguments of the fractal type
+        self.identifier = f_type_identifiers[identifier.lower() if type(identifier) == str else identifier]
+        self.center = f_type_parameters[self.identifier]["center"]
+        self.im_range = f_type_parameters[self.identifier]["im_range"]
+        self.filename = f_type_parameters[self.identifier]["filename"]
 
         # Calculated variables
         self.re_range = self.__gen_re_range()
@@ -419,7 +419,7 @@ class ComplexFractal:
                 (self.imag_pixels, self.oversample, self.real_pixels, self.oversample, 3))
                 .mean(3).mean(1).astype(np.uint8))
 
-    def _draw(self, filename="output"):
+    def draw(self):
         """Saves the image to the directory the file was ran from.
 
         Args:
@@ -428,9 +428,9 @@ class ComplexFractal:
         self._create_set()
         img = Image.fromarray(self.set[::-1,:,:], 'RGB')
 
-        img.save(f"{filename}.jpg")
+        img.save(f"{self.filename}.jpg")
 
-    def _animate(self, start, end, rate, filename="anim"):
+    def animate(self, start, end, rate):
         """Create a series of images, that when played in sequence create a zoom animation
 
         Args:
@@ -447,7 +447,11 @@ class ComplexFractal:
         zoom_store = self.zoom
         self.zoom = start
         for i in range(images_to_create):
-            self._draw(filename=f"{filename}_{str(i).zfill(5)}")
+            self._draw(filename=f"{self.filename}_{str(i).zfill(5)}")
             print(f"Created {i+1} of {images_to_create} ({(i+1)/images_to_create:.2%})")
             self.zoom *= rate
         self.zoom = zoom_store
+
+if __name__ == "__main__":
+    f = ComplexFractal("Celtic_MANDelbar")
+    f.draw()
