@@ -1,4 +1,6 @@
 f_type_identifiers = {
+    -1 : -1,
+    "list" : -1,
     0 : 0,
     "mandelbrot" : 0,
     1 : 1,

@@ -302,6 +302,12 @@ class ComplexFractal:
 
         # Arguments of the fractal type
         self.identifier = f_type_identifiers[identifier.lower() if type(identifier) == str else identifier]
+        # Help function to list out possible identifiers:
+        if self.identifier==-1:
+            for k in f_type_identifiers:
+                if type(k) == str:
+                    print(f"{str(f_type_identifiers[k]).rjust(2)} - {k}")
+            exit()
         self.center = f_type_parameters[self.identifier]["center"]
         self.im_range = f_type_parameters[self.identifier]["im_range"]
         self.filename = filename if type(filename) == str else f_type_parameters[self.identifier]["filename"]
@@ -313,6 +319,7 @@ class ComplexFractal:
 
         # Setup the color map to be used
         self.cm = ColorMap(self.rgb_phases, random_phases=random_phases).colormap
+
 
     def __gen_re_range(self):
         """Determine range of real axis from aspect ratio and imag range.
@@ -460,5 +467,4 @@ class ComplexFractal:
         self.zoom = zoom_store
 
 if __name__ == "__main__":
-    f = ComplexFractal("Celtic_MANDelbar")
-    f.draw()
+   f = ComplexFractal("list")
