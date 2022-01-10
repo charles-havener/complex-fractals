@@ -4,6 +4,10 @@ import math
 from numba import cuda, jit
 from fractal_types import f_type_identifiers, f_type_parameters
 
+
+#Todo: add identifer "list", which would ouput a list of all identifier options
+#Todo: create actual gif/mp4 file, rather than saving a series of images
+
 '''
 Identifiers (since passing strings to gpu was causing issues):
 Indexed based on order added
@@ -39,7 +43,6 @@ def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, blend_f
     def blend(i, a, blend_factor):
         """Mixes a channel of the smooth iteration count color (i) with the branching value (a) of
         the coordinate.
-        #todo add example images to github
 
         Args:
             i (float): a channel value assigned to the smooth iteration [0,1]
@@ -253,7 +256,7 @@ class ComplexFractal:
 
     def __init__(self, identifier, width=480, aspect_ratio="16:9", cycle_count=16, oversample=2, 
         real=-0.3775, imag=0.0, zoom=1, rgb_phases=[0.0, 0.8, 0.15], random_phases=True, 
-        iter_max=350, stripe_density=2, stripe_memory=.9, blend_factor=1.0, gpu=False):
+        iter_max=350, stripe_density=2, stripe_memory=.9, blend_factor=1.0, gpu=False, filename=None):
         """The main class for creating fractals in the complex plane
 
         Args:
@@ -294,7 +297,7 @@ class ComplexFractal:
         self.identifier = f_type_identifiers[identifier.lower() if type(identifier) == str else identifier]
         self.center = f_type_parameters[self.identifier]["center"]
         self.im_range = f_type_parameters[self.identifier]["im_range"]
-        self.filename = f_type_parameters[self.identifier]["filename"]
+        self.filename = filename if type(filename) == str else f_type_parameters[self.identifier]["filename"]
 
         # Calculated variables
         self.re_range = self.__gen_re_range()
