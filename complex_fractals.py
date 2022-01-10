@@ -27,16 +27,17 @@ Indexed based on order added
 
 @jit
 def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, blend_factor, cm, cycle_count):
-    """[summary]
+    """Deterimine the final color assigned to pixels in the output image.
 
     Args:
-        matri (list): the real,imaginary location in the matrix to overide the RGB value of
-        smooth_iter (float): the smooth iteration count of the pixel
-        stripe_avg (float): the value of the addend function for the pixel
-        stripe_density (int): the stripe density
-        stripe_memory (float): the weight of the historical orbit
-        cm (ColorMap.colormap): the colormap used to color the fractal
-        cycle_count (int): the number of iterations before the colormap cycles back to the start
+        matri (list): the (real,imaginary) location in the matrix to overide the RGB value of.
+        smooth_iter (float): the smooth iteration count of the pixel.
+        stripe_avg (float): the stripe value assigned to the pixel.
+        stripe_density (int): how dense the stripes are in the final image.
+        stripe_memory (float): the weight of historical values kept between iterations.
+        blend_factor (float): how strong of a showing the stripes make in the final image, value in [0,1].
+        cm (ColorMap.colormap): the colormap used to color the fractal.
+        cycle_count (int): the number of iterations before the colormap cycles back to the start.
     """
 
     # Custom mixing. Gives nicer results than 50% mix.
@@ -45,9 +46,9 @@ def color(matri, smooth_iter, stripe_avg, stripe_density, stripe_memory, blend_f
         the coordinate.
 
         Args:
-            i (float): a channel value assigned to the smooth iteration [0,1]
-            a (float): value of the addend function for the point [0,1]
-            blend_weight (float): how strong the showing of the stripes is ontop of the smooth color image
+            i (float): a channel value assigned to the smooth iteration, value in [0,1].
+            a (float): value of the stripe_avg for the point, value in [0,1].
+            blend_factor (float): how strong of a showing the stripes make in the final image, value in [0,1].
 
         Returns:
             float: the mixed channel value for the pixel
@@ -75,13 +76,13 @@ def smooth_iter(c, iter_max, stripe_density, stripe_memory, identifier=0):
 
     Args:
         c (complex): a value used in the iteration function of the fractal. Serves a different purpose for differnt fractals.
-        iter_max (int): maximum number of iterations to run through to determine if a point is part of the set
-        stripe_density (int): the density of stripes
-        stripe_memory (float): memory parameter of historical orbit
-        identifier (int, optional): unique id of the calling class, used to determine iteration function. Defaults to 0.
+        iter_max (int): maximum number of iterations until a point that doesn't escape is considered part of the set
+        stripe_density (int): how dense the stripes are in the final image
+        stripe_memory (float): the weight of historical values kept between iterations
+        identifier (int, optional): unique id used to determine iteration function. Defaults to 0.
 
     Returns:
-        tuple, floats: the smooth iteration count, and the value of the addend function
+        tuple of floats: the smooth iteration count, and the stripe_avg value
     """
     escape_radius_squared = 10**10
     z = complex(0,0)
@@ -144,16 +145,15 @@ def compute_set(real_range, imag_range, iter_max, cm, cycle_count, stripe_densit
     """Create the fractal image using the CPU. Much slower than the GPU version.
 
     Args:
-        real_range (float): the range of the real axis
-        imag_range (float): the range of the imaginary axis
-        iter_max (int): the maximum number of iterations to run through before concluding a point 
-            is an element of the set.
-        cm (ColorMap.colormap): the colormap to be used when coloring the set
-        cycle_count (int): the number of iterations before the color map cycles back to the 
-            beginning. Higher values lead to slower transitions between colors.
-        stripe_density (int): Can be thought of as the density of stripes in the output. Should be >= 0
-        stripe_memory (float): The weight of the past addend function value to be carried forward 
-            through the iterations. A memeory parameter of the orbital history.
+        real_range (float): the range of the real axis.
+        imag_range (float): the range of the imaginary axis.
+        iter_max (int): maximum number of iterations until a point that doesn't escape is considered part of the set.
+        cm (ColorMap.colormap): the colormap used to color the fractal.
+        cycle_count (int): the number of iterations before the colormap cycles back to the start.
+        stripe_density (int): how dense the stripes are in the final image.
+        stripe_memory (float): the weight of historical values kept between iterations.
+        blend_factor (float): how strong of a showing the stripes make in the final image, value in [0,1].
+        identifier (int, optional): unique id used to determine iteration function.
 
     Returns:
         array: the RGB values of each pixel of the output image.
@@ -182,20 +182,18 @@ def compute_set_gpu(mat, real_min, real_max, imag_min, imag_max, iter_max, cm,
     the CPU alternative. Required CUDA tookit for numba's cuda.jit to work.
 
     Args:
-        mat (array): empty array of all pixels to store their RGB values for output
-        real_min (float): the minimum value of the real axis
-        real_max (float): the maximal value of the real axis
-        imag_min (float): the minimum value of the imaginary axis
-        imag_max (float): the maximal value of the imaginary axis
-        iter_max (int): the maximum number of iterations to run through, before concluding a point
-            is an element of the set.
-        cm (ColorMap.colormap): the colormap to be used when coloring the set
-        cycle_count (int): the number of iterations before the color map cycles back to the 
-            beginning. Higher values lead to slower transitions between colors.
-        stripe_density (int): Can be thought of as the density of stripes in the output. Should be >= 0.
-        stripe_memory (float): The weight of the past addend function value to be carried forward 
-            through the iterations. A memory parameter of the orbital history.
-        identifier (int): the unique value assigned to the calling class
+        mat (array): empty array of all pixels to store their RGB values for output.
+        real_min (float): the minimum value of the real axis.
+        real_max (float): the maximal value of the real axis.
+        imag_min (float): the minimum value of the imaginary axis.
+        imag_max (float): the maximal value of the imaginary axis.
+        iter_max (int): maximum number of iterations until a point that doesn't escape is considered part of the set.
+        cm (ColorMap.colormap): the colormap used to color the fractal.
+        cycle_count (int): the number of iterations before the colormap cycles back to the start.
+        stripe_density (int): how dense the stripes are in the final image.
+        stripe_memory (float): the weight of historical values kept between iterations.
+        blend_factor (float): how strong of a showing the stripes make in the final image, value in [0,1].
+        identifier (int): unique id used to determine iteration function.
     """
     grid = cuda.grid(1)
     r,i = grid%mat.shape[1], grid//mat.shape[1]
@@ -215,12 +213,11 @@ class ColorMap:
         """Creation and viewing of color maps to be applied to fractals
 
         Args:
-            rgb_phases (list, floats, optional): phases used to create cyclic color map. 
-                Each value should be in [0.0, 1.0], but others will still work. 
-                Defaults to [0.0,0.8,0.15].
-            ncol (int, optional): number of columns used in the  color map Higher values lead to 
+            rgb_phases (list of floats, optional): phases used to create cyclic color map. 
+               Values in [0.0, 1.0]. Defaults to [0.0,0.8,0.15].
+            ncol (int, optional): number of columns used in the color map. Higher values lead to 
                 smoother transitions. Defaults to 2**12.
-            random_phases (bool, optional): Wether random rgb_phases should be used. Will always 
+            random_phases (bool, optional): Whether random rgb_phases should be used. Will always 
                 overide any values passed to rgb_phases if True. Defaults to False.
         """
         self.rgb_phases = rgb_phases
@@ -229,7 +226,7 @@ class ColorMap:
         self.colormap = self.create_colormap()
 
     def create_colormap(self):
-        """Generates and returns a colormap"""
+        """Generates and returns a colormap."""
         def colormap(v, rgb_phases):
             color_segs = np.column_stack(((v+rgb_phases[0])*2*math.pi,
                                           (v+rgb_phases[1])*2*math.pi,
@@ -239,14 +236,14 @@ class ColorMap:
         return colormap(np.linspace(0,1,self.ncol), self.rgb_phases)
 
     def preview_colormap(self):
-        """Preview the colormap"""
+        """Preview the colormap."""
         ncol = 2**12
         c = [self.create_colormap()*255]*(self.ncol//4)
         im = Image.fromarray(np.uint8(c)).convert('RGB')
         im.show()
 
     def generate_random_rgb_phases(self):
-        """Generates 3 random phases to create a colormap"""
+        """Generates 3 random phases to create a colormap."""
         self.rgb_phases = np.random.uniform(0,1,3)
         print(f"Random phases: [{','.join([str(p) for p in self.rgb_phases])}]")
 
@@ -254,25 +251,35 @@ class ColorMap:
 class ComplexFractal:
     """The main class used to create fractals within the complex plane."""
 
-    def __init__(self, identifier, width=480, aspect_ratio="16:9", cycle_count=16, oversample=2, 
+    def __init__(self, identifier=0, width=480, aspect_ratio="16:9", cycle_count=16, oversample=2, 
         real=-0.3775, imag=0.0, zoom=1, rgb_phases=[0.0, 0.8, 0.15], random_phases=True, 
-        iter_max=350, stripe_density=2, stripe_memory=.9, blend_factor=1.0, gpu=False, filename=None):
+        iter_max=350, stripe_density=2, stripe_memory=0.9, blend_factor=1.0, gpu=False, filename=None):
+        
+        
+        
         """The main class for creating fractals in the complex plane
 
         Args:
-            identifier (int): the string or int used to specify a fractal type
-            width (int, optional): the width of the image to be outpu. Defaults to 1920.
-            aspect_ratio (str, optional): The desired aspect ratio of the outpu image. Defaults to "16:9".
-            cycle_count (int, optional): Number of iterations before cycling back to the start of the colormap. Defaults to 16.
-            oversample (int, optional): create a larger and scale down by averaging blocks, pseudo anti-aliasing. Defaults to 2.
+            identifier (int, optional): unique id used to determine iteration function. Defaults to 0.
+            width (int, optional): the width of the image to be output. Defaults to 480.
+            aspect_ratio (str, optional): The desired aspect ratio of the output image. Defaults to "16:9".
+            cycle_count (int, optional): the number of iterations before the colormap cycles back to 
+                the start. Defaults to 16.
+            oversample (int, optional): scale the image my a factor of oversample to assign colors to the 
+                passed resolution with pixel values being the average of oversample*oversample grids. 
+                Defaults to 2.
             real (float, optional): the real value to focus on or to zoom in on. Defaults to -0.3775.
             imag (float, optional): the imaginary value to focus on or to zoom in on. Defaults to 0.0.
             zoom (int, optional): the depth of the zoom. >= 1. Defaults to 1.
-            rgb_phases (list, optional): the phase of each channel in the cyclic color map to be created. Defaults to [0.0, 0.8, 0.15].
-            random_phases (bool, optional): Use a random colormap. If true, overrides any passed rgb_phases. Defaults to False.
-            iter_max (int, optional): Maximum number of iterations to run through before deciding a point is part of the set. Defaults to 350.
-            stripe_density (int, optional): The density of the stripes. 0 for no stripes. Defaults to 2.
-            stripe_memory (float, optional): The weight of the historical orbit on the final value of the addend function. Defaults to .9.
+            rgb_phases (list of floats, optional): phases used to create cyclic color map. 
+               Values in [0.0, 1.0]. Defaults to [0.0,0.8,0.15].
+            random_phases (bool, optional): Whether random rgb_phases should be used. Will always 
+                overide any values passed to rgb_phases if True. Defaults to False.
+            iter_max (int, optional): maximum number of iterations until a point that doesn't escape 
+                is considered part of the set. Defaults to 350.
+            stripe_density (int, optional): how dense the stripes are in the final image. Defaults to 2.
+            stripe_memory (float, optional): the weight of historical values kept between iterations. 
+                Defaults to 0.9.
             gpu (bool, optional): Compute with GPU or with CPU. True->GPU. Defaults to False.
         """
 
@@ -311,7 +318,7 @@ class ComplexFractal:
         """Determine range of real axis from aspect ratio and imag range.
 
         Returns:
-            float: range of real axis
+            float: range of real axis.
         """
         ar = [int(v) for v in self.aspect_ratio.split(":")]
         return self.im_range*ar[0]/ar[1]
@@ -321,7 +328,7 @@ class ComplexFractal:
         number of pixels along real range.
 
         Returns:
-            float: pixels of imaginary axis
+            float: pixels of imaginary axis.
         """
         r = self.real_pixels
         ar = [int(v) for v in self.aspect_ratio.split(":")]
@@ -332,7 +339,7 @@ class ComplexFractal:
         for the desired zoom depth and aspect ratio.
 
         Returns:
-            tuple of floats: the range of the real and imaginary axis
+            tuple of floats: the range of the real and imaginary axis.
         """
         ar = [int(v) for v in self.aspect_ratio.split(":")]
         imag_range_size = self.im_range/self.zoom
@@ -346,11 +353,12 @@ class ComplexFractal:
         in view as opposed to the emptyness seen at points further from the center.
 
         Args:
-            real_range_size (float): the size of the range of the real axis
-            imag_range_size (float): the size of the range of the imaginary axis
+            real_range_size (float): the size of the range of the real axis.
+            imag_range_size (float): the size of the range of the imaginary axis.
 
         Returns:
-            tuple of floats: [description]
+            tuple of floats: the maximal values used in the real and imaginary axis. 
+                Min is determined using the max and respective range.
         """
         real_shift = 0
         if self.center.real + self.re_range/2 < self.real + real_range_size/2:
@@ -369,9 +377,10 @@ class ComplexFractal:
         return (real_max, imag_max)
 
     def __gen_rec_iteration_count(self):
-        """Not used, possible addition later."
+        """Not used, may be useful later as a possible addition for animate()."
+
         Returns:
-            int : an iter_max value suitable for the zoom level
+            int : an iter_max value suitable for the zoom level.
         """
         factor = math.ceil(math.log(self.zoom)/math.log(2))
         rec_iter = max(250, factor*250)
@@ -424,9 +433,6 @@ class ComplexFractal:
 
     def draw(self):
         """Saves the image to the directory the file was ran from.
-
-        Args:
-            filename (str, optional): the name of the file to be saved. Defaults to "output".
         """
         self._create_set()
         img = Image.fromarray(self.set[::-1,:,:], 'RGB')
@@ -434,14 +440,12 @@ class ComplexFractal:
         img.save(f"{self.filename}.jpg")
 
     def animate(self, start, end, rate):
-        """Create a series of images, that when played in sequence create a zoom animation
+        """Create a series of images, that when played in sequence create a zoom animation.
 
         Args:
-            start (float): the initial zoom level (>=1)
-            end (float): the target zoom level to be reached at the end
-            rate (float): the speed at which the zoom level approaches the end value
-            filename (str, optional): prefix of the image filenames. '_####' will be appended to the 
-                end to keep sequence in order. Defaults to "anim".
+            start (float): the initial zoom level (>=1).
+            end (float): the target zoom level to be reached at the end (>= start).
+            rate (float): the speed at which the zoom level approaches the end value (> 1.0).
         """
 
         images_to_create = math.floor(1+(math.log(end)-math.log(start))/math.log(rate))
