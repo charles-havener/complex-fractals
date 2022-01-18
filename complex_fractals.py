@@ -452,7 +452,7 @@ class ComplexFractal:
 
         img.save(f"{self.filename}.jpg")
 
-    def animate(self, start, end, rate):
+    def animate(self, start=1, end=2**10, rate=2):
         """Create a series of images, that when played in sequence create a zoom animation.
 
         Args:
