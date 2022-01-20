@@ -280,7 +280,9 @@ class ComplexFractal:
             stripe_density (int, optional): how dense the stripes are in the final image. Defaults to 2.
             stripe_memory (float, optional): the weight of historical values kept between iterations. 
                 Defaults to 0.9.
+            blend_factor (float): how strong of a showing the stripes make in the final image, value in [0,1].
             gpu (bool, optional): Compute with GPU or with CPU. True->GPU. Defaults to False.
+            filename (str, optional): The name to be assigned to the output image. Defaults to None.
         """
 
         # Arguments that need validation
