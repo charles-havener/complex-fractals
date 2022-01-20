@@ -56,6 +56,7 @@ Each fractal is generated using an iterative function. The mandelbrot, for examp
 
 # Usage
 
+## Creating the workspace
 ```sh
 # After cloning the repository and navigating to the directory
 $ python -m venv venv
@@ -63,11 +64,12 @@ $ .\venv\scripts\activate
 $ pip install -r requirements.txt
 ```
 
+## Importing to a fresh file
 ```python
 from complex_fractals import * # import all classes and functions
 ```
 
-## Fractal Types
+## Fractal types
 ```python
 ComplexFractal("list") # list all identifiers to console
 
@@ -82,7 +84,7 @@ ComplexFractal("list") # list all identifiers to console
 11 - perpendicular_buffalo
 """
 ```
-## Basic Usage
+## Basic usage
 ```python
 f = ComplexFractal() # set up a mandelbrot with default parameters
 f.draw() # create the image
@@ -102,6 +104,7 @@ f.draw() # create the image
 #rgb_phases used for all parameter images
 phases = [0.4621369927925133,0.5109418659399724,0.5222266582635113]
 ```
+
 
 ### identifier
 >see [Fractal Types](#fractal-types) for how to retrieve a list of possible identifiers. The integer and string are both valid inputs.
@@ -161,6 +164,7 @@ ComplexFractal(oversample=4, rgb_phases=phases,
     filename="oversample_4").draw()
 ```
 
+
 ### real
 >the real value to focus on or to zoom in on. Defaults to the center of the set.
 
@@ -197,7 +201,8 @@ ColorMap(random_phases=True).preview_colormap() # random values generated are ou
 ### iter_max
 >maximum number of iterations until a point that doesn't escape is considered part of the set. Deeper zoom levels require higher iter_max values.
 
-<b>stripe_density</b>
+
+### stripe_density
 >how dense the stripes are in the final image.
 ><p align="center">
   ><img src="Images\stripe_density_0.jpg" alt="stripe density 0" title="stripe density 0" width="200">
@@ -214,7 +219,8 @@ ComplexFractal(stripe_density=6, rgb_phases=phases,
     filename="stripe_density_6").draw()
 ```
 
-<b>stripe_memory</b>
+
+### stripe_memory
 >the weight of historical values kept between iterations. Value should be in the range [0.0, 1.0]
 ><p align="center">
   ><img src="Images\stripe_memory_0.0.jpg" alt="stripe memory 0.0" title="stripe memory 0.0" width="200">
@@ -232,7 +238,7 @@ ComplexFractal(stripe_memory=0.9, rgb_phases=phases,
 ```
 
 
-<b>blend_factor</b>
+### blend_factor
 >how strong of a showing the stripes make in the final image, value in [0.1, 1.0].
 ><p align="center">
   ><img src="Images\blend_factor_0.33.jpg" alt="blend factor 0.33" title="blend factor 0.33" width="200">
@@ -250,25 +256,26 @@ ComplexFractal(blend_factor=1.0, rgb_phases=phases,
 ```
 
 
-<b>gpu</b>
+### gpu
 >Compute with GPU or with CPU. True will render using the GPU. Defaults to False. GPU will render the image significantly faster than CPU but requires the CUDA toolkit to be installed. Details on how to install it to work with Numba can be found [here](http://numba.pydata.org/numba-doc/latest/cuda/overview.html#setting-cuda-installation-path).
 
 
-<b>filename</b>
+### filename
 >The name to be assigned to the output image. Defaults to the stringed version of the identifier.
 
 
 ## Animate
 
-<b>start</b>
+
+### start
 >the initial zoom level. Should be greater than or equal to 1.
 
 
-<b>end</b>
+### end
 >the target zoom level to be reached in the final frame. Must be greater than start value.
 
 
-<b>rate</b>
+### rate
 >the speed at which the zoom level approaches the end value. Must be strictly greater than 1.
 
 <br>
