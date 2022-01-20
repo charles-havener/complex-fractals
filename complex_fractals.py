@@ -252,7 +252,7 @@ class ComplexFractal:
     """The main class used to create fractals within the complex plane."""
 
     def __init__(self, identifier=0, width=480, aspect_ratio="16:9", cycle_count=16, oversample=2, 
-        real=-0.3775, imag=0.0, zoom=1, rgb_phases=[0.0, 0.8, 0.15], random_phases=True, 
+        real=-0.3775, imag=0.0, zoom=1, rgb_phases=[0.0, 0.8, 0.15], random_phases=False, 
         iter_max=350, stripe_density=2, stripe_memory=0.9, blend_factor=1.0, gpu=False, filename=None):
         
         
