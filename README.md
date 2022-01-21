@@ -36,6 +36,8 @@
 ## Todo List
 - Add additional fractals (3rd and 4th powers)?
 - Have .animate() create an .mp4 or .gif rather than a series of images.
+- Real time color map previews with adjustable phase inputs.
+- Real time viewer of fractals to explore and find inputs to use for final renders.
 
 <br>
 
@@ -130,7 +132,7 @@ ComplexFractal(aspect_ratio="21:9", rgb_phases=phases,
 
 
 ### cycle_count
->the number of iterations before the colormap cycles back to the start. Smaller values yield >faster color transitions.
+>the number of iterations before the colormap cycles back to the start. Smaller values yield faster color transitions.
 ><p align="center">
   ><img src="Images\color_map.jpg" alt="color map" title="color map" width="600">
 ></p>
@@ -153,8 +155,8 @@ ComplexFractal(cycle_count=64, rgb_phases=phases,
 ### oversample
 >scale the image dimensions by a factor of oversample. The image is then downscaled to the desired size by averaging oversample*oversample grids of pixels. Creates a cleaner image, but large oversample values can greatly increase computation times. Value must be greater than or equal to 1.
 ><p align="center">
-  ><img src="Images\oversample_1.jpg" alt="oversample 1" title="oversample 1" width="500">
-  ><img src="Images\oversample_4.jpg" alt="oversample 4" title="oversample 4" width="500">
+  ><img src="Images\oversample_1.jpg" alt="oversample 1" title="oversample 1" width="400">
+  ><img src="Images\oversample_4.jpg" alt="oversample 4" title="oversample 4" width="400">
 ></p>
 
 ```python
